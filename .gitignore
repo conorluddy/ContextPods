@@ -51,3 +51,9 @@ temp/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# TurboRepo
+.turbo/
+
+# Python virtual environment
+venv/
