@@ -1,3 +1,10 @@
+/**
+ * Context-Pods Core MCP Server
+ * 
+ * This server manages other MCP servers in the Context-Pods toolkit.
+ * It provides tools for creating, managing, and distributing MCP servers.
+ */
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -6,17 +13,31 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { logger } from '@context-pods/core';
+import { CONFIG } from './config/index.js';
+import {
+  CreateMCPTool,
+  WrapScriptTool,
+  ListMCPsTool,
+  ValidateMCPTool,
+} from './tools/index.js';
+import { getRegistryOperations } from './registry/index.js';
 
 /**
- * Context-Pods Core MCP Server
- *
- * This server manages other MCP servers in the Context-Pods toolkit.
- * It provides tools for creating, managing, and distributing MCP servers.
+ * Initialize tool instances
+ */
+const createMCPTool = new CreateMCPTool();
+const wrapScriptTool = new WrapScriptTool();
+const listMCPsTool = new ListMCPsTool();
+const validateMCPTool = new ValidateMCPTool();
+
+/**
+ * Create MCP server instance
  */
 const server = new Server(
   {
-    name: 'context-pods-server',
-    version: '0.0.1',
+    name: CONFIG.server.name,
+    version: CONFIG.server.version,
   },
   {
     capabilities: {
@@ -34,71 +55,137 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'create-mcp',
-        description: 'Generate new MCP server from template',
+        description: 'Generate new MCP server from template with intelligent template selection',
         inputSchema: {
           type: 'object',
           properties: {
             name: {
               type: 'string',
-              description: 'Name of the MCP server to create',
+              description: 'Name of the MCP server to create (alphanumeric, hyphens, underscores)',
+              pattern: '^[a-zA-Z][a-zA-Z0-9_-]*$',
             },
             template: {
               type: 'string',
-              description: 'Template to use (e.g., typescript/basic, python/script-wrapper)',
+              description: 'Specific template to use (optional - will auto-select if not provided)',
             },
             outputPath: {
               type: 'string',
-              description: 'Output directory for the generated MCP server',
-              default: './generated-mcps',
+              description: 'Output directory for the generated MCP server (optional)',
             },
-          },
-          required: ['name', 'template'],
-        },
-      },
-      {
-        name: 'list-mcps',
-        description: 'Show all managed MCP servers',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            filter: {
+            description: {
               type: 'string',
-              description: 'Filter by language or status',
+              description: 'Description of the MCP server (optional)',
+            },
+            language: {
+              type: 'string',
+              description: 'Preferred language (typescript, javascript, python, rust, shell)',
+              enum: ['typescript', 'javascript', 'python', 'rust', 'shell'],
+            },
+            variables: {
+              type: 'object',
+              description: 'Template variables for customization (optional)',
+              additionalProperties: true,
             },
           },
+          required: ['name'],
         },
       },
       {
         name: 'wrap-script',
-        description: 'Convert existing script to MCP server',
+        description: 'Convert existing script to MCP server with automatic language detection',
         inputSchema: {
           type: 'object',
           properties: {
             scriptPath: {
               type: 'string',
-              description: 'Path to the script to wrap',
+              description: 'Path to the script file to wrap',
             },
             name: {
               type: 'string',
               description: 'Name for the generated MCP server',
+              pattern: '^[a-zA-Z][a-zA-Z0-9_-]*$',
             },
             template: {
               type: 'string',
-              description: 'Template to use (auto-detected if not specified)',
+              description: 'Specific template to use (optional - will auto-detect if not provided)',
+            },
+            outputPath: {
+              type: 'string',
+              description: 'Output directory for the generated server (optional)',
+            },
+            description: {
+              type: 'string',
+              description: 'Description of the wrapped server (optional)',
+            },
+            variables: {
+              type: 'object',
+              description: 'Additional template variables (optional)',
+              additionalProperties: true,
             },
           },
           required: ['scriptPath', 'name'],
         },
       },
       {
+        name: 'list-mcps',
+        description: 'Show all managed MCP servers with filtering and formatting options',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filter: {
+              type: 'string',
+              description: 'Legacy filter parameter (use specific filters instead)',
+            },
+            status: {
+              type: 'string',
+              description: 'Filter by server status',
+              enum: ['created', 'building', 'ready', 'error', 'archived'],
+            },
+            template: {
+              type: 'string',
+              description: 'Filter by template name',
+            },
+            language: {
+              type: 'string',
+              description: 'Filter by programming language',
+            },
+            search: {
+              type: 'string',
+              description: 'Search in server names and descriptions',
+            },
+            format: {
+              type: 'string',
+              description: 'Output format',
+              enum: ['table', 'json', 'summary'],
+              default: 'table',
+            },
+          },
+        },
+      },
+      {
         name: 'validate-mcp',
-        description: 'Check MCP server against official schema',
+        description: 'Validate MCP server against official schema and best practices',
         inputSchema: {
           type: 'object',
           properties: {
             mcpPath: {
               type: 'string',
-              description: 'Path to the MCP server to validate',
+              description: 'Path to the MCP server directory to validate',
+            },
+            checkRegistry: {
+              type: 'boolean',
+              description: 'Check registry status (default: true)',
+              default: true,
+            },
+            checkSchema: {
+              type: 'boolean',
+              description: 'Check MCP protocol compliance (default: true)',
+              default: true,
+            },
+            checkBuild: {
+              type: 'boolean',
+              description: 'Validate build process (default: false)',
+              default: false,
             },
           },
           required: ['mcpPath'],
@@ -114,49 +201,33 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
-  switch (name) {
-    case 'create-mcp':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Creating MCP server "${(args as any)?.name}" using template "${(args as any)?.template}"...\n\nThis is a placeholder implementation. The actual template processing will be implemented in the next phase.`,
-          },
-        ],
-      };
+  try {
+    switch (name) {
+      case 'create-mcp':
+        return await createMCPTool.safeExecute(args);
 
-    case 'list-mcps':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Managed MCP Servers:\n\n📦 No servers found yet.\n\nUse the 'create-mcp' or 'wrap-script' tools to generate your first MCP server.`,
-          },
-        ],
-      };
+      case 'wrap-script':
+        return await wrapScriptTool.safeExecute(args);
 
-    case 'wrap-script':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Wrapping script "${(args as any)?.scriptPath}" as MCP server "${(args as any)?.name}"...\n\nThis is a placeholder implementation. Script analysis and wrapping will be implemented in the next phase.`,
-          },
-        ],
-      };
+      case 'list-mcps':
+        return await listMCPsTool.safeExecute(args);
 
-    case 'validate-mcp':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Validating MCP server at "${(args as any)?.mcpPath}"...\n\nThis is a placeholder implementation. Schema validation will be implemented in the testing phase.`,
-          },
-        ],
-      };
+      case 'validate-mcp':
+        return await validateMCPTool.safeExecute(args);
 
-    default:
-      throw new Error(`Unknown tool: ${name}`);
+      default:
+        throw new Error(`Unknown tool: ${name}`);
+    }
+  } catch (error) {
+    logger.error(`Tool execution error: ${name}`, error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `❌ Internal error executing ${name}: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
+    };
   }
 });
 
@@ -169,7 +240,7 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
       {
         uri: 'context-pods://mcps/',
         name: 'Managed MCP Servers',
-        description: 'List of all managed MCP servers',
+        description: 'List of all managed MCP servers with metadata',
         mimeType: 'application/json',
       },
       {
@@ -184,6 +255,12 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
         description: 'Context-Pods system status and configuration',
         mimeType: 'application/json',
       },
+      {
+        uri: 'context-pods://statistics',
+        name: 'Server Statistics',
+        description: 'Statistics about managed MCP servers',
+        mimeType: 'application/json',
+      },
     ],
   };
 });
@@ -194,104 +271,210 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const { uri } = request.params;
 
-  switch (uri) {
-    case 'context-pods://mcps/':
-      return {
-        contents: [
-          {
-            uri,
-            mimeType: 'application/json',
-            text: JSON.stringify(
-              {
-                servers: [],
-                count: 0,
-                message: 'No MCP servers found. Use create-mcp or wrap-script to get started.',
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-      };
+  try {
+    switch (uri) {
+      case 'context-pods://mcps/':
+        return await handleMCPsResource();
 
-    case 'context-pods://templates/':
-      return {
-        contents: [
-          {
-            uri,
-            mimeType: 'application/json',
-            text: JSON.stringify(
-              {
-                templates: [
-                  {
-                    name: 'typescript/basic',
-                    language: 'typescript',
-                    description: 'Basic TypeScript MCP server',
-                    turboOptimized: true,
-                  },
-                  {
-                    name: 'typescript/script-wrapper',
-                    language: 'typescript',
-                    description: 'Wrap TypeScript/JavaScript scripts as MCP',
-                    turboOptimized: true,
-                  },
-                  {
-                    name: 'python/basic',
-                    language: 'python',
-                    description: 'Basic Python MCP server',
-                    selfContained: true,
-                  },
-                  {
-                    name: 'python/script-wrapper',
-                    language: 'python',
-                    description: 'Wrap Python scripts as MCP',
-                    selfContained: true,
-                  },
-                ],
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-      };
+      case 'context-pods://templates/':
+        return await handleTemplatesResource();
 
-    case 'context-pods://status':
-      return {
-        contents: [
-          {
-            uri,
-            mimeType: 'application/json',
-            text: JSON.stringify(
-              {
-                version: '0.0.1',
-                turboRepo: true,
-                primaryLanguage: 'typescript',
-                supportedLanguages: ['typescript', 'python', 'rust', 'shell'],
-                status: 'ready',
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-      };
+      case 'context-pods://status':
+        return await handleStatusResource();
 
-    default:
-      throw new Error(`Unknown resource: ${uri}`);
+      case 'context-pods://statistics':
+        return await handleStatisticsResource();
+
+      default:
+        throw new Error(`Unknown resource: ${uri}`);
+    }
+  } catch (error) {
+    logger.error(`Resource error: ${uri}`, error);
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: 'application/json',
+          text: JSON.stringify({
+            error: `Failed to load resource: ${error instanceof Error ? error.message : String(error)}`,
+          }, null, 2),
+        },
+      ],
+    };
   }
 });
+
+/**
+ * Handle MCPs resource
+ */
+async function handleMCPsResource() {
+  const registry = await getRegistryOperations();
+  const servers = await registry.listServers();
+
+  return {
+    contents: [
+      {
+        uri: 'context-pods://mcps/',
+        mimeType: 'application/json',
+        text: JSON.stringify({
+          servers: servers.map(server => ({
+            id: server.id,
+            name: server.name,
+            status: server.status,
+            template: server.template,
+            path: server.path,
+            language: server.metadata.language,
+            description: server.metadata.description,
+            tags: server.metadata.tags,
+            turboOptimized: server.metadata.turboOptimized,
+            buildCommand: server.metadata.buildCommand,
+            devCommand: server.metadata.devCommand,
+            lastBuildStatus: server.metadata.lastBuildStatus,
+            lastBuildTime: server.metadata.lastBuildTime,
+            createdAt: server.createdAt,
+            updatedAt: server.updatedAt,
+          })),
+          count: servers.length,
+          lastUpdated: Date.now(),
+        }, null, 2),
+      },
+    ],
+  };
+}
+
+/**
+ * Handle templates resource
+ */
+async function handleTemplatesResource() {
+  const { TemplateSelector } = await import('@context-pods/core');
+  const selector = new TemplateSelector(CONFIG.templatesPath);
+  const templates = await selector.getAvailableTemplates();
+
+  return {
+    contents: [
+      {
+        uri: 'context-pods://templates/',
+        mimeType: 'application/json',
+        text: JSON.stringify({
+          templates: templates.map(t => ({
+            name: t.template.name,
+            language: t.template.language,
+            description: t.template.description,
+            tags: t.template.tags,
+            optimization: t.template.optimization,
+            variables: Object.keys(t.template.variables || {}),
+            path: t.templatePath,
+          })),
+          count: templates.length,
+          templatesPath: CONFIG.templatesPath,
+          lastUpdated: Date.now(),
+        }, null, 2),
+      },
+    ],
+  };
+}
+
+/**
+ * Handle status resource
+ */
+async function handleStatusResource() {
+  const registry = await getRegistryOperations();
+  const stats = await registry.getStatistics();
+
+  return {
+    contents: [
+      {
+        uri: 'context-pods://status',
+        mimeType: 'application/json',
+        text: JSON.stringify({
+          version: CONFIG.server.version,
+          name: CONFIG.server.name,
+          status: 'ready',
+          configuration: {
+            templatesPath: CONFIG.templatesPath,
+            registryPath: CONFIG.registryPath,
+            outputMode: CONFIG.outputMode,
+            generatedPackagesPath: CONFIG.generatedPackagesPath,
+          },
+          capabilities: {
+            turboRepo: true,
+            templateSelection: true,
+            languageDetection: true,
+            scriptWrapping: true,
+            serverValidation: true,
+          },
+          supportedLanguages: ['typescript', 'javascript', 'python', 'rust', 'shell'],
+          serverCounts: stats.byStatus,
+          uptime: process.uptime(),
+          lastUpdated: Date.now(),
+        }, null, 2),
+      },
+    ],
+  };
+}
+
+/**
+ * Handle statistics resource
+ */
+async function handleStatisticsResource() {
+  const registry = await getRegistryOperations();
+  const stats = await registry.getStatistics();
+
+  return {
+    contents: [
+      {
+        uri: 'context-pods://statistics',
+        mimeType: 'application/json',
+        text: JSON.stringify({
+          ...stats,
+          lastUpdated: Date.now(),
+        }, null, 2),
+      },
+    ],
+  };
+}
 
 /**
  * Start the server
  */
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error('Context-Pods MCP server started');
+  try {
+    // Initialize registry
+    logger.info('Initializing Context-Pods registry...');
+    await getRegistryOperations();
+
+    // Start server
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    
+    logger.info('Context-Pods MCP server started successfully', {
+      version: CONFIG.server.version,
+      templatesPath: CONFIG.templatesPath,
+      registryPath: CONFIG.registryPath,
+      outputMode: CONFIG.outputMode,
+    });
+
+  } catch (error) {
+    logger.error('Failed to start Context-Pods server:', error);
+    process.exit(1);
+  }
 }
 
+/**
+ * Handle graceful shutdown
+ */
+process.on('SIGINT', async () => {
+  logger.info('Shutting down Context-Pods server...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  logger.info('Shutting down Context-Pods server...');
+  process.exit(0);
+});
+
+// Start the server
 main().catch((error) => {
-  console.error('Server error:', error);
+  logger.error('Server startup error:', error);
   process.exit(1);
 });

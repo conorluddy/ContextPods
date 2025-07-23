@@ -17,10 +17,13 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@context-pods/core": "file:../core",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
+    "@types/sqlite3": "^3.1.11",
     "typescript": "^5.5.0",
     "vitest": "^1.6.0",
     "eslint": "^8.57.0"
