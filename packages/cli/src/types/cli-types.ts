@@ -165,3 +165,26 @@ export interface MCPInfo {
   createdAt: Date;
   lastModified: Date;
 }
+
+/**
+ * Server command options
+ */
+export interface ServerOptions {
+  daemon?: boolean;
+  dev?: boolean;
+  debug?: boolean;
+  verbose?: boolean;
+  port?: number;
+}
+
+/**
+ * Meta-MCP Server status
+ */
+export interface ServerStatus {
+  running: boolean;
+  built: boolean;
+  configured: boolean;
+  pid?: number;
+  uptime?: number;
+  version: string;
+}

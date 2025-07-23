@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "context-pods-dev": {
+      "command": "node", 
+      "args": ["./packages/server/dist/index.js"],
+      "cwd": "/path/to/MCPTemplate",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "context-pods:*"
+      }
+    }
+  }
+}

@@ -14,7 +14,11 @@
     "format": "turbo format",
     "clean": "turbo clean",
     "dev": "turbo dev",
-    "type-check": "turbo type-check"
+    "type-check": "turbo type-check",
+    "mcp:start": "./scripts/start-server.sh",
+    "mcp:dev": "./scripts/dev-server.sh",
+    "mcp:test": "./scripts/test-connection.mjs",
+    "mcp:status": "./scripts/status.sh"
   },
   "keywords": [
     "mcp",

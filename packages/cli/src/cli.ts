@@ -18,6 +18,13 @@ import { testCommand } from './commands/test.js';
 import { listCommand } from './commands/list.js';
 import { templatesCommand } from './commands/templates.js';
 import { initCommand } from './commands/init.js';
+import { 
+  startServerCommand, 
+  stopServerCommand, 
+  statusServerCommand, 
+  testServerCommand, 
+  devServerCommand 
+} from './commands/server.js';
 
 /**
  * Create and configure the CLI program
@@ -185,6 +192,54 @@ export function createProgram(): Command {
       const cleaned = await cacheManager.cleanExpired();
       
       output.success(`Cleaned ${cleaned} expired cache entries`);
+    });
+
+  // Server command - Manage Meta-MCP Server
+  const serverCommand = program
+    .command('server')
+    .description('Manage the Meta-MCP Server');
+
+  serverCommand
+    .command('start')
+    .description('Start the Meta-MCP Server')
+    .option('-d, --daemon', 'Run as daemon')
+    .option('--dev', 'Development mode')
+    .option('--debug', 'Enable debug logging')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command.parent?.parent as Command);
+      await startServerCommand(options, context);
+    });
+
+  serverCommand
+    .command('stop')
+    .description('Stop the Meta-MCP Server')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command.parent?.parent as Command);
+      await stopServerCommand(options, context);
+    });
+
+  serverCommand
+    .command('status')
+    .description('Show Meta-MCP Server status')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command.parent?.parent as Command);
+      await statusServerCommand(options, context);
+    });
+
+  serverCommand
+    .command('test')
+    .description('Test Meta-MCP Server connection')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command.parent?.parent as Command);
+      await testServerCommand(options, context);
+    });
+
+  serverCommand
+    .command('dev')
+    .description('Start Meta-MCP Server in development mode')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command.parent?.parent as Command);
+      await devServerCommand(options, context);
     });
 
   // Config command - Manage configuration

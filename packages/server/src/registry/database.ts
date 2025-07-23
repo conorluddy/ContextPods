@@ -2,7 +2,9 @@
  * SQLite database for MCP server registry
  */
 
-import { Database } from 'sqlite3';
+import sqlite3 from 'sqlite3';
+import type { Database as DatabaseType } from 'sqlite3';
+const { Database } = sqlite3;
 import { promises as fs } from 'fs';
 import { dirname } from 'path';
 import { logger } from '@context-pods/core';
@@ -21,7 +23,7 @@ import {
  * Registry database class
  */
 export class RegistryDatabase {
-  private db: Database | null = null;
+  private db: DatabaseType | null = null;
   private dbPath: string;
 
   constructor(dbPath?: string) {
@@ -58,7 +60,7 @@ export class RegistryDatabase {
   async close(): Promise<void> {
     if (this.db) {
       return new Promise((resolve, reject) => {
-        this.db!.close((error) => {
+        this.db!.close((error: Error | null) => {
           if (error) {
             logger.error('Error closing database:', error);
             reject(error);
@@ -99,7 +101,7 @@ export class RegistryDatabase {
           row.created_at,
           row.updated_at,
         ],
-        function (error) {
+        function (error: Error | null) {
           if (error) {
             logger.error('Error creating server record:', error);
             reject(error);
@@ -123,7 +125,7 @@ export class RegistryDatabase {
     const sql = 'SELECT * FROM mcp_servers WHERE id = ?';
 
     return new Promise((resolve, reject) => {
-      this.db!.get(sql, [id], (error, row: MCPServerRow) => {
+      this.db!.get(sql, [id], (error: Error | null, row: MCPServerRow) => {
         if (error) {
           logger.error('Error getting server:', error);
           reject(error);
@@ -172,7 +174,7 @@ export class RegistryDatabase {
       this.db!.run(
         sql,
         [row.name, row.template, row.path, row.status, row.metadata, row.updated_at, id],
-        function (error) {
+        function (this: any, error: Error | null) {
           if (error) {
             logger.error('Error updating server:', error);
             reject(error);
@@ -196,7 +198,7 @@ export class RegistryDatabase {
     const sql = 'DELETE FROM mcp_servers WHERE id = ?';
 
     return new Promise((resolve, reject) => {
-      this.db!.run(sql, [id], function (error) {
+      this.db!.run(sql, [id], function (this: any, error: Error | null) {
         if (error) {
           logger.error('Error deleting server:', error);
           reject(error);
@@ -250,7 +252,7 @@ export class RegistryDatabase {
     sql += ' ORDER BY created_at DESC';
 
     return new Promise((resolve, reject) => {
-      this.db!.all(sql, params, (error, rows: MCPServerRow[]) => {
+      this.db!.all(sql, params, (error: Error | null, rows: MCPServerRow[]) => {
         if (error) {
           logger.error('Error listing servers:', error);
           reject(error);
@@ -273,7 +275,7 @@ export class RegistryDatabase {
     const sql = 'SELECT COUNT(*) as count FROM mcp_servers WHERE name = ?';
 
     return new Promise((resolve, reject) => {
-      this.db!.get(sql, [name], (error, row: { count: number }) => {
+      this.db!.get(sql, [name], (error: Error | null, row: { count: number }) => {
         if (error) {
           logger.error('Error checking name availability:', error);
           reject(error);
@@ -287,9 +289,9 @@ export class RegistryDatabase {
   /**
    * Open database connection
    */
-  private openDatabase(): Promise<Database> {
+  private openDatabase(): Promise<DatabaseType> {
     return new Promise((resolve, reject) => {
-      const db = new Database(this.dbPath, (error) => {
+      const db = new Database(this.dbPath, (error: Error | null) => {
         if (error) {
           reject(error);
         } else {
@@ -318,7 +320,7 @@ export class RegistryDatabase {
       settings.map(
         (sql) =>
           new Promise<void>((resolve, reject) => {
-            this.db!.run(sql, (error) => {
+            this.db!.run(sql, (error: Error | null) => {
               if (error) {
                 reject(error);
               } else {
@@ -361,7 +363,7 @@ export class RegistryDatabase {
     ];
 
     return new Promise((resolve, reject) => {
-      this.db!.run(createTableSQL, (error) => {
+      this.db!.run(createTableSQL, (error: Error | null) => {
         if (error) {
           reject(error);
         } else {
@@ -370,7 +372,7 @@ export class RegistryDatabase {
             createIndexes.map(
               (sql) =>
                 new Promise<void>((resolve, reject) => {
-                  this.db!.run(sql, (error) => {
+                  this.db!.run(sql, (error: Error | null) => {
                     if (error) {
                       reject(error);
                     } else {
