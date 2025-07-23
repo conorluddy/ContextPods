@@ -6,7 +6,8 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import { logger } from './logger.js';
 import { DefaultTemplateEngine } from './template-engine.js';
-import type { TemplateMetadata, TemplateLanguage } from './types.js';
+import type { TemplateMetadata } from './types.js';
+import { TemplateLanguage } from './types.js';
 import { TemplateMetadataSchema } from './schemas.js';
 
 /**
@@ -138,9 +139,10 @@ export class TemplateSelector {
     const criteria: TemplateSelectionCriteria = {
       language,
       optimization: {
-        turboRepo: language === 'typescript' || language === 'nodejs',
+        turboRepo: language === TemplateLanguage.TYPESCRIPT || language === TemplateLanguage.NODEJS,
         hotReload: true,
-        sharedDependencies: language === 'typescript' || language === 'nodejs',
+        sharedDependencies:
+          language === TemplateLanguage.TYPESCRIPT || language === TemplateLanguage.NODEJS,
         buildCaching: true,
       },
       complexity: 'advanced',
@@ -210,7 +212,10 @@ export class TemplateSelector {
     }
 
     // Prefer TypeScript for Node.js projects (Context-Pods optimization)
-    if (criteria.language === 'nodejs' && template.language === 'typescript') {
+    if (
+      criteria.language === TemplateLanguage.NODEJS &&
+      template.language === TemplateLanguage.TYPESCRIPT
+    ) {
       score += 25;
       reasons.push('TypeScript preferred for Node.js projects');
     }
@@ -236,9 +241,13 @@ export class TemplateSelector {
     const criteria: TemplateSelectionCriteria = {
       language: detectedLanguage,
       optimization: {
-        turboRepo: detectedLanguage === 'typescript' || detectedLanguage === 'nodejs',
+        turboRepo:
+          detectedLanguage === TemplateLanguage.TYPESCRIPT ||
+          detectedLanguage === TemplateLanguage.NODEJS,
         hotReload: true,
-        sharedDependencies: detectedLanguage === 'typescript' || detectedLanguage === 'nodejs',
+        sharedDependencies:
+          detectedLanguage === TemplateLanguage.TYPESCRIPT ||
+          detectedLanguage === TemplateLanguage.NODEJS,
         buildCaching: true,
       },
     };

@@ -36,15 +36,15 @@ export class Logger {
    */
   private formatMessage(level: string, message: string): string {
     const parts: string[] = [];
-    
+
     if (this.timestamp) {
       parts.push(new Date().toISOString());
     }
-    
+
     parts.push(this.prefix);
     parts.push(`[${level}]`);
     parts.push(message);
-    
+
     return parts.join(' ');
   }
 
