@@ -1,0 +1,32 @@
+{
+  "name": "@context-pods/server",
+  "version": "0.0.1",
+  "description": "Core MCP server for Context-Pods toolkit",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "context-pods-server": "bin/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0",
+    "vitest": "^1.6.0",
+    "eslint": "^8.57.0"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ]
+}

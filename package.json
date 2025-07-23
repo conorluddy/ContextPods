@@ -6,12 +6,15 @@
   "workspaces": [
     "packages/*"
   ],
+  "packageManager": "npm@10.0.0",
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "format": "npm run format --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "clean": "turbo clean",
+    "dev": "turbo dev",
+    "type-check": "turbo type-check"
   },
   "keywords": [
     "mcp",
@@ -42,7 +45,11 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.0",
+    "turbo": "^2.5.5",
     "typescript": "^5.5.0",
     "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.16.0"
   }
 }
