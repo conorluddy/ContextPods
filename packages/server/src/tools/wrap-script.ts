@@ -12,7 +12,7 @@ import { CONFIG } from '../config/index.js';
 /**
  * Arguments for wrap-script tool
  */
-interface WrapScriptArgs {
+interface WrapScriptArgs extends Record<string, unknown> {
   scriptPath: string;
   name: string;
   template?: string;

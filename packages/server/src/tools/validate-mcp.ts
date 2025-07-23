@@ -10,7 +10,7 @@ import { getRegistryOperations } from '../registry/index.js';
 /**
  * Arguments for validate-mcp tool
  */
-interface ValidateMCPArgs {
+interface ValidateMCPArgs extends Record<string, unknown> {
   mcpPath: string;
   checkRegistry?: boolean;
   checkSchema?: boolean;

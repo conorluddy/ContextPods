@@ -4,7 +4,7 @@
 
 import { randomUUID } from 'crypto';
 import { logger } from '@context-pods/core';
-import { getRegistryDatabase } from './database.js';
+import { getRegistryDatabase, RegistryDatabase } from './database.js';
 import type {
   MCPServerMetadata,
   CreateMCPServerInput,
@@ -77,7 +77,7 @@ export class RegistryOperations {
   async getServerByName(name: string): Promise<MCPServerMetadata | null> {
     const db = await this.ensureDatabase();
     const servers = await db.listServers({ search: name });
-    return servers.find(server => server.name === name) || null;
+    return servers.find((server: MCPServerMetadata) => server.name === name) || null;
   }
 
   /**

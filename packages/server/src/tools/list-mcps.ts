@@ -8,7 +8,7 @@ import { getRegistryOperations, MCPServerStatus, type MCPServerFilters } from '.
 /**
  * Arguments for list-mcps tool
  */
-interface ListMCPsArgs {
+interface ListMCPsArgs extends Record<string, unknown> {
   filter?: string;
   status?: string;
   template?: string;

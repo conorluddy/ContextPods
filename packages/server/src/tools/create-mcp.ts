@@ -12,7 +12,7 @@ import { CONFIG } from '../config/index.js';
 /**
  * Arguments for create-mcp tool
  */
-interface CreateMCPArgs {
+interface CreateMCPArgs extends Record<string, unknown> {
   name: string;
   template?: string;
   outputPath?: string;
@@ -46,18 +46,6 @@ interface TypedTemplateSelectionResult {
   score: number;
 }
 
-/**
- * Template processing result with proper typing
- */
-interface TypedTemplateProcessingResult {
-  success: boolean;
-  outputPath: string;
-  generatedFiles: string[];
-  errors?: string[];
-  warnings?: string[];
-  buildCommand?: string;
-  devCommand?: string;
-}
 
 /**
  * Create MCP server tool implementation
@@ -155,8 +143,8 @@ export class CreateMCPTool extends BaseTool {
       // Step 4: Prepare template variables
       const variables = this.prepareTemplateVariables(typedArgs, template.template);
 
-      // Step 5: Validate template variables
-      const isValid = await this.templateEngine.validateVariables(template.template, variables);
+      // Step 5: Validate template variables  
+      const isValid = await this.templateEngine.validateVariables(template.template as any, variables);
       if (!isValid) {
         return {
           success: false,
@@ -180,7 +168,7 @@ export class CreateMCPTool extends BaseTool {
         await registry.markServerBuilding(serverMetadata.id);
 
         // Step 8: Process template
-        const result = await this.templateEngine.process(template.template, {
+        const result = await this.templateEngine.process(template.template as any, {
           variables,
           outputPath,
           templatePath: template.templatePath,
