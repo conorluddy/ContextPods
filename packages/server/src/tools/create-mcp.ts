@@ -6,7 +6,7 @@ import { join } from 'path';
 import { promises as fs } from 'fs';
 import { TemplateSelector, DefaultTemplateEngine, logger } from '@context-pods/core';
 import { BaseTool, type ToolResult } from './base-tool.js';
-import { getRegistryOperations, MCPServerStatus } from '../registry/index.js';
+import { getRegistryOperations } from '../registry/index.js';
 import { CONFIG } from '../config/index.js';
 
 /**
@@ -19,6 +19,44 @@ interface CreateMCPArgs {
   description?: string;
   language?: string;
   variables?: Record<string, unknown>;
+}
+
+/**
+ * Template selection result with proper typing
+ */
+interface TypedTemplateSelectionResult {
+  template: {
+    name: string;
+    language: string;
+    tags?: string[];
+    optimization: {
+      turboRepo: boolean;
+      hotReload: boolean;
+      sharedDependencies: boolean;
+      buildCaching: boolean;
+    };
+    variables: Record<string, {
+      type: string;
+      required: boolean;
+      default?: unknown;
+    }>;
+  };
+  templatePath: string;
+  reasons: string[];
+  score: number;
+}
+
+/**
+ * Template processing result with proper typing
+ */
+interface TypedTemplateProcessingResult {
+  success: boolean;
+  outputPath: string;
+  generatedFiles: string[];
+  errors?: string[];
+  warnings?: string[];
+  buildCommand?: string;
+  devCommand?: string;
 }
 
 /**
@@ -209,7 +247,7 @@ export class CreateMCPTool extends BaseTool {
   /**
    * Select appropriate template
    */
-  private async selectTemplate(args: CreateMCPArgs) {
+  private async selectTemplate(args: CreateMCPArgs): Promise<TypedTemplateSelectionResult | null> {
     if (args.template) {
       // Specific template requested
       const templates = await this.templateSelector.getAvailableTemplates();

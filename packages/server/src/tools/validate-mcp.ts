@@ -4,7 +4,6 @@
 
 import { join } from 'path';
 import { promises as fs } from 'fs';
-import { logger } from '@context-pods/core';
 import { BaseTool, type ToolResult } from './base-tool.js';
 import { getRegistryOperations } from '../registry/index.js';
 

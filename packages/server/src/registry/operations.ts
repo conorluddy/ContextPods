@@ -260,7 +260,7 @@ export class RegistryOperations {
   /**
    * Ensure database is initialized
    */
-  private async ensureDatabase() {
+  private async ensureDatabase(): Promise<RegistryDatabase> {
     if (!this.database) {
       await this.initialize();
     }

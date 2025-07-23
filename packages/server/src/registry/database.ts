@@ -217,7 +217,7 @@ export class RegistryDatabase {
     }
 
     let sql = 'SELECT * FROM mcp_servers';
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     // Build WHERE clause
     const conditions: string[] = [];

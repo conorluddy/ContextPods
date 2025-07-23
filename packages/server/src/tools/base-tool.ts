@@ -14,15 +14,12 @@ export interface ToolResult {
   warnings?: string[];
 }
 
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+
 /**
- * MCP tool response content
+ * MCP tool response content - matches CallToolResult from MCP SDK
  */
-export interface MCPToolResponse {
-  content: Array<{
-    type: 'text';
-    text: string;
-  }>;
-}
+export type MCPToolResponse = CallToolResult;
 
 /**
  * Base tool class with common functionality
@@ -82,10 +79,10 @@ export abstract class BaseTool {
   /**
    * Validate tool arguments
    */
-  protected async validateArguments(args: unknown): Promise<string | null> {
+  protected validateArguments(_args: unknown): Promise<string | null> {
     // Default implementation - no validation
     // Override in subclasses for specific validation
-    return null;
+    return Promise.resolve(null);
   }
 
   /**
@@ -170,7 +167,7 @@ export abstract class BaseTool {
    * Helper to check if argument exists and is of correct type
    */
   protected validateArgument(
-    args: any,
+    args: Record<string, unknown>,
     name: string,
     type: 'string' | 'number' | 'boolean' | 'object',
     required = true
@@ -196,7 +193,7 @@ export abstract class BaseTool {
    * Helper to validate string argument with additional checks
    */
   protected validateStringArgument(
-    args: any,
+    args: Record<string, unknown>,
     name: string,
     required = true,
     minLength = 0,

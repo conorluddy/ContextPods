@@ -241,7 +241,7 @@ export class ListMCPsTool extends BaseTool {
     // Status breakdown
     output += `📋 By Status:\n`;
     for (const [status, count] of Object.entries(stats.byStatus)) {
-      if (count > 0) {
+      if ((count as number) > 0) {
         const emoji = this.getStatusEmoji(status as MCPServerStatus);
         output += `- ${emoji} ${status}: ${count}\n`;
       }
@@ -251,7 +251,7 @@ export class ListMCPsTool extends BaseTool {
     if (Object.keys(stats.byTemplate).length > 0) {
       output += `\n🎨 By Template:\n`;
       const sortedTemplates = Object.entries(stats.byTemplate)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([,a], [,b]) => (b as number) - (a as number))
         .slice(0, 5); // Top 5 templates
 
       for (const [template, count] of sortedTemplates) {

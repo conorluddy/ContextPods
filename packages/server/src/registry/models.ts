@@ -128,7 +128,7 @@ export function rowToMetadata(row: MCPServerRow): MCPServerMetadata {
     template: row.template,
     path: row.path,
     status: row.status as MCPServerStatus,
-    metadata: JSON.parse(row.metadata),
+    metadata: JSON.parse(row.metadata) as MCPServerMetadata['metadata'],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

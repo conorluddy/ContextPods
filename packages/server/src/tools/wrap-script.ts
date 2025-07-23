@@ -6,7 +6,7 @@ import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
 import { TemplateSelector, DefaultTemplateEngine, logger, TemplateLanguage } from '@context-pods/core';
 import { BaseTool, type ToolResult } from './base-tool.js';
-import { getRegistryOperations, MCPServerStatus } from '../registry/index.js';
+import { getRegistryOperations } from '../registry/index.js';
 import { CONFIG } from '../config/index.js';
 
 /**
