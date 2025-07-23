@@ -1,7 +1,7 @@
 {
   "name": "context-pods",
   "version": "0.0.1",
-  "description": "MCP farm - a developer tool that generates functional MCP servers from templates",
+  "description": "ContextPods - a developer tool that generates functional MCP servers from templates",
   "private": true,
   "workspaces": [
     "packages/*"
