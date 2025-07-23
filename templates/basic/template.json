@@ -1,0 +1,37 @@
+{
+  "name": "basic",
+  "description": "Basic MCP server template",
+  "version": "1.0.0",
+  "author": "Context-Pods Team",
+  "tags": ["starter", "minimal"],
+  "variables": {
+    "serverName": {
+      "description": "Name of the MCP server",
+      "type": "string",
+      "required": true
+    },
+    "serverDescription": {
+      "description": "Description of the MCP server",
+      "type": "string",
+      "required": true
+    }
+  },
+  "files": [
+    {
+      "path": "package.json",
+      "template": true
+    },
+    {
+      "path": "tsconfig.json",
+      "template": false
+    },
+    {
+      "path": "src/index.ts",
+      "template": true
+    },
+    {
+      "path": "README.md",
+      "template": true
+    }
+  ]
+}
