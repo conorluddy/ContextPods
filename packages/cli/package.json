@@ -1,0 +1,56 @@
+{
+  "name": "@context-pods/cli",
+  "version": "0.0.1",
+  "description": "TurboRepo-optimized CLI for Context-Pods MCP development suite",
+  "type": "module",
+  "main": "./dist/cli.js",
+  "types": "./dist/cli.d.ts",
+  "bin": {
+    "context-pods": "./bin/context-pods"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "dev": "tsc -b --watch",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "context-pods",
+    "cli",
+    "turborepo"
+  ],
+  "author": "Conor Luddy",
+  "license": "MIT",
+  "dependencies": {
+    "@context-pods/core": "file:../core",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "fs-extra": "^11.2.0",
+    "chokidar": "^3.6.0",
+    "inquirer": "^9.2.14",
+    "ora": "^8.0.1",
+    "execa": "^8.0.1",
+    "zod": "^3.23.0",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7"
+  }
+}

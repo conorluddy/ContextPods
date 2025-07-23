@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+import('../dist/cli.js').then(({ main }) => {
+  main(process.argv);
+}).catch((error) => {
+  console.error('Failed to start context-pods CLI:', error);
+  process.exit(1);
+});
