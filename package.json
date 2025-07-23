@@ -1,0 +1,48 @@
+{
+  "name": "context-pods",
+  "version": "0.0.1",
+  "description": "MCP farm - a developer tool that generates functional MCP servers from templates",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "llm",
+    "tooling",
+    "development"
+  ],
+  "author": "Conor Luddy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/conorluddy/ContextPods.git"
+  },
+  "bugs": {
+    "url": "https://github.com/conorluddy/ContextPods/issues"
+  },
+  "homepage": "https://github.com/conorluddy/ContextPods#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0",
+    "vitest": "^1.6.0"
+  }
+}

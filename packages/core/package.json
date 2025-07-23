@@ -1,0 +1,38 @@
+{
+  "name": "@context-pods/core",
+  "version": "0.0.1",
+  "description": "Core utilities and types for Context-Pods MCP farm",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "context-pods"
+  ],
+  "author": "Conor Luddy",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0"
+  }
+}
