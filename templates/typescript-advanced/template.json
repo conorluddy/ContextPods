@@ -1,0 +1,125 @@
+{
+  "name": "typescript-advanced",
+  "description": "Advanced TypeScript MCP server with full TurboRepo optimization and Context-Pods utilities",
+  "version": "1.0.0",
+  "author": "Context-Pods Team",
+  "tags": ["advanced", "typescript", "turbo", "utilities"],
+  "language": "typescript",
+  "optimization": {
+    "turboRepo": true,
+    "hotReload": true,
+    "sharedDependencies": true,
+    "buildCaching": true
+  },
+  "variables": {
+    "serverName": {
+      "description": "Name of the MCP server",
+      "type": "string",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-]+$"
+      }
+    },
+    "serverDescription": {
+      "description": "Description of the MCP server",
+      "type": "string",
+      "required": true
+    },
+    "includeLogging": {
+      "description": "Include structured logging with Context-Pods logger",
+      "type": "boolean",
+      "required": false,
+      "default": true
+    },
+    "includeErrorHandling": {
+      "description": "Include advanced error handling with Context-Pods errors",
+      "type": "boolean",
+      "required": false,
+      "default": true
+    },
+    "includeValidation": {
+      "description": "Include Zod schema validation",
+      "type": "boolean",
+      "required": false,
+      "default": true
+    },
+    "toolCategories": {
+      "description": "Categories of tools to include",
+      "type": "array",
+      "required": false,
+      "default": ["file", "data", "utility"],
+      "validation": {
+        "options": ["file", "data", "utility", "network", "system"]
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "package.json",
+      "template": true
+    },
+    {
+      "path": "tsconfig.json",
+      "template": false
+    },
+    {
+      "path": "src/index.ts",
+      "template": true
+    },
+    {
+      "path": "src/server.ts",
+      "template": true
+    },
+    {
+      "path": "src/tools/index.ts",
+      "template": true
+    },
+    {
+      "path": "src/tools/file-tools.ts",
+      "template": true
+    },
+    {
+      "path": "src/tools/data-tools.ts",
+      "template": true
+    },
+    {
+      "path": "src/tools/utility-tools.ts",
+      "template": true
+    },
+    {
+      "path": "src/resources/index.ts",
+      "template": true
+    },
+    {
+      "path": "src/utils/validation.ts",
+      "template": true
+    },
+    {
+      "path": "src/utils/helpers.ts",
+      "template": true
+    },
+    {
+      "path": "README.md",
+      "template": true
+    },
+    {
+      "path": ".env.example",
+      "template": false
+    }
+  ],
+  "dependencies": {
+    "core": ["@context-pods/core"],
+    "dev": ["@types/node", "typescript", "tsx", "vitest", "@types/jest"],
+    "peer": ["@modelcontextprotocol/sdk", "zod"]
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  }
+}
