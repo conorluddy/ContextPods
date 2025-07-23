@@ -33,15 +33,34 @@
 
 ## GitHub Issue Workflow
 
-When working on GitHub issues:
+When working on GitHub issues, follow these steps:
 
-1. Use `gh issue view` to get issue details
-2. Update issue with 'work-in-progress' label
-3. Create feature branch from latest main
-4. Search codebase and check recent PRs/commits for context
-5. Plan implementation with simplicity, consistency, and integration tests
-6. Implement with DocBlock comments and clean code principles
-7. Run lint/format/type-check before commits
-8. Fix any build failures before committing
-9. Create descriptive commit messages and push
-10. Create PR and update issue with 'in code review' label
+- Use `gh issue view` to get the issue details based on the assigned issue number.
+- Update the issue with the 'work-in-progress' label
+- Think hard about the problem described in the issue
+- Check out a new feature branch for this work
+- Ensure you're working on a feature branch that has the latest commits from main branch
+- Search the codebase for relevant files
+- Look at recent PRs and commits to main branch for additional context
+- Check any local diff to see was any work already done for this 
+- Think hard about how best to implement the changes described in the issue
+    -For each design decision, ask
+      - Simplicity Test: Can this be simpler without losing functionality?
+      - Consistency Test: Does this follow existing patterns?
+      - Integration Test: Does this work with all of the existing architecture?
+- Employ a sub-agent and ask it for feedback on your plan
+- Implement the changes in a clean manner, following clean-code principles
+- Commit to the current branch after you complete any of your TODO items
+  - Run linting and formatting prior to any commits.
+- Use DocBlock comments on all blocks of code
+- Update older comments if their subject matter has had any changes
+- Ensure code passes linting and type checking
+- *IMPORTANT* If build is failing, even if it seems unrelated to the task, it's important to fix it before we commit anything.
+- Look for any compilation warnings at build time and fix/clean them up
+- Create a descriptive commit message
+- Push and create a PR
+- Address any PR comments 
+- Update issue $ARGUMENTS with the label: in code review
+
+Remember to use the GitHub CLI (`gh`) for all GitHub-related tasks.
+
