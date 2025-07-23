@@ -16,3 +16,6 @@ export * from './schemas.js';
 
 // Export template engine
 export * from './template-engine.js';
+
+// Export template selector
+export * from './template-selector.js';
