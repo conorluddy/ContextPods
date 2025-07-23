@@ -26,6 +26,21 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "cli:wrap": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "outputs": ["generated/**"]
+    },
+    "cli:generate": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "outputs": ["generated/**"]
+    },
+    "cli:dev": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
     }
   }
 }
