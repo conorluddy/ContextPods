@@ -13,3 +13,6 @@ export * from './types.js';
 
 // Export schemas
 export * from './schemas.js';
+
+// Export template engine
+export * from './template-engine.js';

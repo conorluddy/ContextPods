@@ -3,6 +3,53 @@
  */
 
 /**
+ * Template language types
+ */
+export enum TemplateLanguage {
+  NODEJS = 'nodejs',
+  TYPESCRIPT = 'typescript',
+  PYTHON = 'python',
+  RUST = 'rust',
+  SHELL = 'shell',
+}
+
+/**
+ * Template optimization capabilities
+ */
+export interface TemplateOptimization {
+  turboRepo: boolean;
+  hotReload: boolean;
+  sharedDependencies: boolean;
+  buildCaching: boolean;
+}
+
+/**
+ * Template variable definition
+ */
+export interface TemplateVariable {
+  description: string;
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  default?: unknown;
+  validation?: {
+    pattern?: string;
+    min?: number;
+    max?: number;
+    options?: string[];
+  };
+}
+
+/**
+ * Template file definition
+ */
+export interface TemplateFile {
+  path: string;
+  template: boolean;
+  executable?: boolean;
+  encoding?: 'utf8' | 'binary';
+}
+
+/**
  * Metadata for a pod template
  */
 export interface TemplateMetadata {
@@ -11,6 +58,16 @@ export interface TemplateMetadata {
   version: string;
   author?: string;
   tags?: string[];
+  language: TemplateLanguage;
+  optimization: TemplateOptimization;
+  variables: Record<string, TemplateVariable>;
+  files: TemplateFile[];
+  dependencies?: {
+    core?: string[];
+    dev?: string[];
+    peer?: string[];
+  };
+  scripts?: Record<string, string>;
 }
 
 /**
@@ -78,4 +135,55 @@ export interface MCPPrompt {
     description?: string;
     required?: boolean;
   }>;
+}
+
+/**
+ * Template processing context
+ */
+export interface TemplateContext {
+  variables: Record<string, unknown>;
+  outputPath: string;
+  templatePath: string;
+  optimization: TemplateOptimization;
+}
+
+/**
+ * Template processing result
+ */
+export interface TemplateProcessingResult {
+  success: boolean;
+  outputPath: string;
+  generatedFiles: string[];
+  errors?: string[];
+  warnings?: string[];
+  buildCommand?: string;
+  devCommand?: string;
+}
+
+/**
+ * Template engine interface
+ */
+export interface TemplateEngine {
+  /**
+   * Process a template with given context
+   */
+  process(metadata: TemplateMetadata, context: TemplateContext): Promise<TemplateProcessingResult>;
+
+  /**
+   * Validate template variables
+   */
+  validateVariables(
+    metadata: TemplateMetadata,
+    variables: Record<string, unknown>,
+  ): Promise<boolean>;
+
+  /**
+   * Get supported languages
+   */
+  getSupportedLanguages(): TemplateLanguage[];
+
+  /**
+   * Detect language from file extension or content
+   */
+  detectLanguage(filePath: string, content?: string): Promise<TemplateLanguage | null>;
 }

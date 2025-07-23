@@ -1,0 +1,76 @@
+{
+  "name": "python-basic",
+  "description": "Basic Python MCP server template (self-contained)",
+  "version": "1.0.0",
+  "author": "Context-Pods Team",
+  "tags": ["python", "basic", "self-contained"],
+  "language": "python",
+  "optimization": {
+    "turboRepo": false,
+    "hotReload": false,
+    "sharedDependencies": false,
+    "buildCaching": false
+  },
+  "variables": {
+    "serverName": {
+      "description": "Name of the MCP server",
+      "type": "string",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9_]+$"
+      }
+    },
+    "serverDescription": {
+      "description": "Description of the MCP server",
+      "type": "string",
+      "required": true
+    },
+    "pythonVersion": {
+      "description": "Minimum Python version required",
+      "type": "string",
+      "required": false,
+      "default": "3.8",
+      "validation": {
+        "options": ["3.8", "3.9", "3.10", "3.11", "3.12"]
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "main.py",
+      "template": true,
+      "executable": true
+    },
+    {
+      "path": "requirements.txt",
+      "template": true
+    },
+    {
+      "path": "src/__init__.py",
+      "template": false
+    },
+    {
+      "path": "src/server.py",
+      "template": true
+    },
+    {
+      "path": "src/tools.py",
+      "template": true
+    },
+    {
+      "path": "src/resources.py",
+      "template": true
+    },
+    {
+      "path": "README.md",
+      "template": true
+    }
+  ],
+  "scripts": {
+    "install": "pip install -r requirements.txt",
+    "dev": "python main.py",
+    "start": "python main.py",
+    "test": "python -m pytest tests/",
+    "lint": "python -m flake8 src/ main.py"
+  }
+}
