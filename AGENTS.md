@@ -25,3 +25,23 @@
 - Monorepo with workspaces in `packages/`
 - ESM modules with Node16 resolution
 - Zod for runtime validation, strict TypeScript config
+
+## CLI and Development Tools
+
+- Use GH (Github CLI) to CRUD Github Issues
+- We NEVER push to main. Always work in a git-flow type of way, with branches and PRs. Main represents production, and pushing to it will send out a new release.
+
+## GitHub Issue Workflow
+
+When working on GitHub issues:
+
+1. Use `gh issue view` to get issue details
+2. Update issue with 'work-in-progress' label
+3. Create feature branch from latest main
+4. Search codebase and check recent PRs/commits for context
+5. Plan implementation with simplicity, consistency, and integration tests
+6. Implement with DocBlock comments and clean code principles
+7. Run lint/format/type-check before commits
+8. Fix any build failures before committing
+9. Create descriptive commit messages and push
+10. Create PR and update issue with 'in code review' label
