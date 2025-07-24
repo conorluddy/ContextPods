@@ -5,23 +5,10 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import inquirer from 'inquirer';
-import type { TemplateSelectionResult } from '@context-pods/core';
+import type { TemplateSelectionResult, TemplateVariable } from '@context-pods/core';
 import { TemplateSelector, DefaultTemplateEngine } from '@context-pods/core';
 import type { GenerateOptions, CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
-
-/**
- * Template variable configuration
- */
-interface VariableConfig {
-  name: string;
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-  required: boolean;
-  default?: any;
-  description?: string;
-  choices?: string[];
-  validate?: (value: any) => boolean | string;
-}
 
 /**
  * Generate an MCP server from a template
@@ -29,56 +16,51 @@ interface VariableConfig {
 export async function generateCommand(
   templateName: string | undefined,
   options: GenerateOptions,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<CommandResult> {
   try {
     output.info('Generating MCP server from template...');
-    
+
     // Step 1: Select template
     output.startSpinner('Loading templates...');
     const template = await selectTemplate(templateName, context);
     output.succeedSpinner(`Selected template: ${output.template(template.template.name)}`);
-    
+
     if (context.verbose) {
       displayTemplateInfo(template);
     }
-    
+
     // Step 2: Determine server name
     const serverName = await determineServerName(options);
-    
+
     // Step 3: Prepare output path
     const outputPath = await prepareOutputPath(options, context, serverName);
-    
+
     // Step 4: Check if output exists
-    if (!options.force && await pathExists(outputPath)) {
+    if (!options.force && (await pathExists(outputPath))) {
       const shouldOverwrite = await confirmOverwrite(outputPath);
       if (!shouldOverwrite) {
         return { success: false, message: 'Operation cancelled by user' };
       }
     }
-    
+
     // Step 5: Collect template variables
     output.info('Configuring template variables...');
-    const variables = await collectTemplateVariables(
-      template,
-      options,
-      serverName,
-      context
-    );
-    
+    const variables = await collectTemplateVariables(template, options, serverName, context);
+
     // Step 6: Validate variables
     output.startSpinner('Validating template variables...');
     await validateTemplateVariables(template, variables);
     output.succeedSpinner('Variables validated successfully');
-    
+
     // Step 7: Generate MCP server
     output.startSpinner('Generating MCP server...');
     await generateMCPServer(template, variables, outputPath, context);
     output.succeedSpinner('MCP server generated successfully');
-    
+
     // Step 8: Display success information
     displaySuccess(serverName, outputPath, template.template.name, template);
-    
+
     return {
       success: true,
       message: `MCP server '${serverName}' generated successfully`,
@@ -89,12 +71,11 @@ export async function generateCommand(
         variables,
       },
     };
-    
   } catch (error) {
     output.stopSpinner();
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     output.error('Failed to generate MCP server', error as Error);
-    
+
     return {
       success: false,
       error: error as Error,
@@ -108,41 +89,43 @@ export async function generateCommand(
  */
 async function selectTemplate(
   templateName: string | undefined,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<TemplateSelectionResult> {
   const templateSelector = new TemplateSelector(context.templatePaths[0] || './templates');
-  
+
   if (templateName) {
     // User specified template - find it in available templates
     const templates = await templateSelector.getAvailableTemplates();
-    const template = templates.find(t => t.template.name === templateName);
+    const template = templates.find((t) => t.template.name === templateName);
     if (!template) {
       throw new Error(`Template not found: ${templateName}`);
     }
     return template;
   }
-  
+
   // Interactive template selection
   const availableTemplates = await templateSelector.getAvailableTemplates();
-  
+
   if (availableTemplates.length === 0) {
     throw new Error('No templates found. Please check your templates directory.');
   }
-  
-  const choices = availableTemplates.map(template => ({
+
+  const choices = availableTemplates.map((template) => ({
     name: `${template.template.name} (${template.template.language}) - ${template.template.description || 'No description'}`,
     value: template,
     short: template.template.name,
   }));
-  
-  const { selectedTemplate } = await inquirer.prompt([{
-    type: 'list',
-    name: 'selectedTemplate',
-    message: 'Select a template:',
-    choices,
-    pageSize: 10,
-  }]);
-  
+
+  const { selectedTemplate } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'selectedTemplate',
+      message: 'Select a template:',
+      choices,
+      pageSize: 10,
+    },
+  ]);
+
   return selectedTemplate;
 }
 
@@ -156,16 +139,25 @@ function displayTemplateInfo(template: TemplateSelectionResult): void {
     { label: 'Language', value: template.template.language || 'Unknown', color: 'yellow' },
     { label: 'Version', value: template.template.version || 'Unknown', color: 'gray' },
     { label: 'Description', value: template.template.description || 'No description' },
-    { label: 'Optimized', value: template.template.optimization?.turboRepo ? 'Yes' : 'No', color: template.template.optimization?.turboRepo ? 'green' : 'gray' },
+    {
+      label: 'Optimized',
+      value: template.template.optimization?.turboRepo ? 'Yes' : 'No',
+      color: template.template.optimization?.turboRepo ? 'green' : 'gray',
+    },
   ]);
-  
+
   if (template.template.variables && Object.keys(template.template.variables).length > 0) {
     output.info('\nRequired Variables:');
-    Object.entries(template.template.variables).forEach(([name, config]: [string, any]) => {
-      const required = config.required ? '(required)' : '(optional)';
-      const defaultValue = config.default !== undefined ? ` [default: ${config.default}]` : '';
-      output.list([`${name}: ${config.description || 'No description'} ${required}${defaultValue}`]);
-    });
+    Object.entries(template.template.variables).forEach(
+      ([name, config]: [string, TemplateVariable]) => {
+        const required = config.required ? '(required)' : '(optional)';
+        const defaultValue =
+          config.default !== undefined ? ` [default: ${String(config.default)}]` : '';
+        output.list([
+          `${name}: ${config.description || 'No description'} ${required}${defaultValue}`,
+        ]);
+      },
+    );
   }
 }
 
@@ -176,25 +168,27 @@ async function determineServerName(options: GenerateOptions): Promise<string> {
   if (options.name) {
     return options.name;
   }
-  
-  const { name } = await inquirer.prompt([{
-    type: 'input',
-    name: 'name',
-    message: 'Enter MCP server name:',
-    validate: (input: string) => {
-      if (!input.trim()) {
-        return 'Server name is required';
-      }
-      
-      const namePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
-      if (!namePattern.test(input)) {
-        return 'Name must start with a letter and contain only letters, numbers, hyphens, and underscores';
-      }
-      
-      return true;
+
+  const { name } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Enter MCP server name:',
+      validate: (input: string): boolean | string => {
+        if (!input.trim()) {
+          return 'Server name is required';
+        }
+
+        const namePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+        if (!namePattern.test(input)) {
+          return 'Name must start with a letter and contain only letters, numbers, hyphens, and underscores';
+        }
+
+        return true;
+      },
     },
-  }]);
-  
+  ]);
+
   return name;
 }
 
@@ -204,7 +198,7 @@ async function determineServerName(options: GenerateOptions): Promise<string> {
 async function prepareOutputPath(
   options: GenerateOptions,
   context: CommandContext,
-  serverName: string
+  serverName: string,
 ): Promise<string> {
   const baseOutputPath = options.output || context.outputPath;
   return path.resolve(context.workingDir, baseOutputPath, serverName);
@@ -226,13 +220,15 @@ async function pathExists(path: string): Promise<boolean> {
  * Confirm overwrite of existing directory
  */
 async function confirmOverwrite(outputPath: string): Promise<boolean> {
-  const { confirm } = await inquirer.prompt([{
-    type: 'confirm',
-    name: 'confirm',
-    message: `Directory ${output.path(outputPath)} already exists. Overwrite?`,
-    default: false,
-  }]);
-  
+  const { confirm } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: `Directory ${output.path(outputPath)} already exists. Overwrite?`,
+      default: false,
+    },
+  ]);
+
   return confirm;
 }
 
@@ -243,61 +239,61 @@ async function collectTemplateVariables(
   template: TemplateSelectionResult,
   options: GenerateOptions,
   serverName: string,
-  _context: CommandContext
+  _context: CommandContext,
 ): Promise<Record<string, any>> {
   const variables: Record<string, any> = {
     serverName,
-    serverDescription: options.description || `MCP server generated from ${template.template.name} template`,
+    serverDescription:
+      options.description || `MCP server generated from ${template.template.name} template`,
   };
-  
+
   // Add user-provided variables from CLI options
   if (options.variables) {
     Object.assign(variables, options.variables);
   }
-  
+
   // Process template-defined variables
   const templateVariables = template.template.variables || {};
-  const missingVariables: VariableConfig[] = [];
-  
+  const missingVariables: Array<{ name: string; config: TemplateVariable }> = [];
+
   // Identify missing required variables
   for (const [name, config] of Object.entries(templateVariables)) {
-    const varConfig = config as VariableConfig;
-    
+    const varConfig = config;
+
     if (!(name in variables)) {
       if (varConfig.required || !varConfig.default) {
-        missingVariables.push({ ...varConfig, name });
+        missingVariables.push({ name, config: varConfig });
       } else {
         variables[name] = varConfig.default;
       }
     }
   }
-  
+
   // Collect missing variables interactively
   if (missingVariables.length > 0) {
     output.info(`Collecting ${missingVariables.length} template variable(s)...`);
-    
-    for (const varConfig of missingVariables) {
-      const value = await promptForVariable(varConfig);
-      variables[varConfig.name] = value;
+
+    for (const { name, config } of missingVariables) {
+      const value = await promptForVariable(config);
+      variables[name] = value;
     }
   }
-  
+
   return variables;
 }
 
 /**
  * Prompt user for a single template variable
  */
-async function promptForVariable(config: VariableConfig): Promise<any> {
+async function promptForVariable(config: TemplateVariable): Promise<unknown> {
   const basePrompt = {
     name: 'value',
-    message: `${config.description || config.name}:`,
+    message: `${config.description}:`,
     default: config.default,
-    validate: config.validate,
   };
-  
-  let prompt: any;
-  
+
+  let prompt: unknown;
+
   switch (config.type) {
     case 'boolean':
       prompt = {
@@ -305,40 +301,40 @@ async function promptForVariable(config: VariableConfig): Promise<any> {
         type: 'confirm',
       };
       break;
-      
+
     case 'number':
       prompt = {
         ...basePrompt,
         type: 'number',
-        validate: (input: any) => {
-          if (isNaN(input)) {
+        validate: (input: unknown): boolean | string => {
+          if (isNaN(input as number)) {
             return 'Please enter a valid number';
           }
-          return config.validate ? config.validate(input) : true;
+          return true;
         },
       };
       break;
-      
+
     case 'array':
       prompt = {
         ...basePrompt,
         type: 'input',
-        filter: (input: string) => input.split(',').map(s => s.trim()),
-        validate: (input: any) => {
+        filter: (input: string): string[] => input.split(',').map((s) => s.trim()),
+        validate: (input: unknown): boolean | string => {
           if (!Array.isArray(input)) {
             return 'Please enter comma-separated values';
           }
-          return config.validate ? config.validate(input) : true;
+          return true;
         },
       };
       break;
-      
+
     default:
-      if (config.choices) {
+      if (config.validation?.options) {
         prompt = {
           ...basePrompt,
           type: 'list',
-          choices: config.choices,
+          choices: config.validation.options,
         };
       } else {
         prompt = {
@@ -347,7 +343,7 @@ async function promptForVariable(config: VariableConfig): Promise<any> {
         };
       }
   }
-  
+
   const { value } = await inquirer.prompt([prompt]);
   return value;
 }
@@ -357,10 +353,10 @@ async function promptForVariable(config: VariableConfig): Promise<any> {
  */
 async function validateTemplateVariables(
   template: TemplateSelectionResult,
-  variables: Record<string, any>
+  variables: Record<string, any>,
 ): Promise<void> {
   const templateEngine = new DefaultTemplateEngine();
-  
+
   const isValid = await templateEngine.validateVariables(template.template, variables);
   if (!isValid) {
     throw new Error('Template variable validation failed');
@@ -374,10 +370,10 @@ async function generateMCPServer(
   template: TemplateSelectionResult,
   variables: Record<string, any>,
   outputPath: string,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<void> {
   const templateEngine = new DefaultTemplateEngine();
-  
+
   await templateEngine.process(template.template, {
     variables,
     outputPath,
@@ -398,38 +394,33 @@ function displaySuccess(
   serverName: string,
   outputPath: string,
   templateName: string,
-  template: TemplateSelectionResult
+  template: TemplateSelectionResult,
 ): void {
   output.success(`MCP server generated successfully!`);
   output.divider();
-  
+
   output.table([
     { label: 'Server Name', value: serverName, color: 'cyan' },
     { label: 'Template', value: templateName, color: 'blue' },
     { label: 'Language', value: template.template.language || 'Unknown', color: 'yellow' },
     { label: 'Output Path', value: outputPath, color: 'yellow' },
   ]);
-  
+
   output.divider();
   output.info('Next steps:');
-  
+
   const isOptimized = template.template.optimization?.turboRepo;
-  const steps = isOptimized 
-    ? [
-        `cd ${path.relative(process.cwd(), outputPath)}`,
-        'npm install',
-        'turbo build',
-        'turbo dev',
-      ]
+  const steps = isOptimized
+    ? [`cd ${path.relative(process.cwd(), outputPath)}`, 'npm install', 'turbo build', 'turbo dev']
     : [
         `cd ${path.relative(process.cwd(), outputPath)}`,
         'npm install',
         'npm run build',
         'npm run dev',
       ];
-  
+
   output.list(steps);
-  
+
   if (isOptimized) {
     output.info('\n💡 This template supports TurboRepo optimization for faster builds!');
   }

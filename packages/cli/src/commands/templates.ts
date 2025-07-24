@@ -11,41 +11,40 @@ import { output } from '../utils/output-formatter.js';
  */
 export async function templatesCommand(
   options: { all?: boolean; format?: 'table' | 'json' },
-  context: CommandContext
+  context: CommandContext,
 ): Promise<CommandResult> {
   try {
     output.startSpinner('Loading templates...');
-    
+
     const templates = await loadTemplates(context);
-    
+
     output.stopSpinner();
-    
+
     if (templates.length === 0) {
       output.warn('No templates found');
       output.info('Template directories searched:');
-      context.templatePaths.forEach(path => {
+      context.templatePaths.forEach((path) => {
         output.list([output.path(path)]);
       });
-      
+
       return {
         success: true,
         message: 'No templates found',
         data: [],
       };
     }
-    
+
     if (options.format === 'json') {
       console.log(JSON.stringify(templates, null, 2));
     } else {
       displayTemplatesTable(templates, context);
     }
-    
+
     return {
       success: true,
       message: `Found ${templates.length} template(s)`,
       data: templates,
     };
-    
   } catch (error) {
     output.stopSpinner();
     output.error('Failed to load templates', error as Error);
@@ -62,12 +61,12 @@ export async function templatesCommand(
  */
 async function loadTemplates(context: CommandContext): Promise<TemplateInfo[]> {
   const allTemplates: TemplateInfo[] = [];
-  
+
   for (const templatePath of context.templatePaths) {
     try {
       const templateSelector = new TemplateSelector(templatePath);
       const templates = await templateSelector.getAvailableTemplates();
-      
+
       for (const template of templates) {
         const templateInfo: TemplateInfo = {
           name: template.template.name,
@@ -77,9 +76,9 @@ async function loadTemplates(context: CommandContext): Promise<TemplateInfo[]> {
           version: template.template.version,
           optimized: template.template.optimization?.turboRepo || false,
         };
-        
+
         // Avoid duplicates (prefer first occurrence)
-        if (!allTemplates.some(t => t.name === templateInfo.name)) {
+        if (!allTemplates.some((t) => t.name === templateInfo.name)) {
           allTemplates.push(templateInfo);
         }
       }
@@ -90,7 +89,7 @@ async function loadTemplates(context: CommandContext): Promise<TemplateInfo[]> {
       // Continue with other paths
     }
   }
-  
+
   return allTemplates.sort((a, b) => {
     // Sort by optimized first, then by name
     if (a.optimized && !b.optimized) return -1;
@@ -105,39 +104,39 @@ async function loadTemplates(context: CommandContext): Promise<TemplateInfo[]> {
 function displayTemplatesTable(templates: TemplateInfo[], context: CommandContext): void {
   output.info(`Found ${templates.length} template(s):`);
   output.divider();
-  
+
   // Group templates by category
-  const optimized = templates.filter(t => t.optimized);
-  const standard = templates.filter(t => !t.optimized);
-  
+  const optimized = templates.filter((t) => t.optimized);
+  const standard = templates.filter((t) => !t.optimized);
+
   if (optimized.length > 0) {
     output.info('🚀 TurboRepo Optimized Templates:');
     displayTemplateGroup(optimized, context.verbose);
-    
+
     if (standard.length > 0) {
       console.log();
     }
   }
-  
+
   if (standard.length > 0) {
     output.info('📦 Standard Templates:');
     displayTemplateGroup(standard, context.verbose);
   }
-  
+
   output.divider();
-  
+
   // Show usage examples
   output.info('Usage examples:');
   output.list([
     `${output.command('context-pods generate')} ${output.template(templates[0]?.name || 'template-name')}`,
     `${output.command('context-pods wrap script.js')} --template ${output.template(templates[0]?.name || 'template-name')}`,
   ]);
-  
+
   // Show template paths
   if (context.verbose) {
     console.log();
     output.info('Template search paths:');
-    context.templatePaths.forEach(path => {
+    context.templatePaths.forEach((path) => {
       output.list([output.path(path)]);
     });
   }
@@ -150,24 +149,24 @@ function displayTemplateGroup(templates: TemplateInfo[], verbose = false): void 
   templates.forEach((template, index) => {
     const languageColor = getLanguageColor(template.language);
     const optimizedBadge = template.optimized ? ' ⚡' : '';
-    
-    console.log(`${index + 1}. ${output.template(template.name)}${optimizedBadge}`);
-    
+
+    output.info(`${index + 1}. ${output.template(template.name)}${optimizedBadge}`);
+
     const tableData = [
       { label: '  Language', value: template.language, color: languageColor },
       { label: '  Description', value: template.description || 'No description' },
     ];
-    
+
     if (template.version) {
       tableData.push({ label: '  Version', value: template.version, color: 'gray' });
     }
-    
+
     if (verbose) {
       tableData.push({ label: '  Path', value: template.path, color: 'yellow' });
     }
-    
+
     output.table(tableData);
-    
+
     if (index < templates.length - 1) {
       console.log();
     }

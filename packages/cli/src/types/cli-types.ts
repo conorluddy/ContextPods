@@ -12,20 +12,20 @@ export const CLIConfigSchema = z.object({
   templatesPath: z.string().default('./templates'),
   outputPath: z.string().default('./generated'),
   cacheDir: z.string().default('~/.context-pods/cache'),
-  
+
   // TurboRepo settings
   turbo: z.object({
     enabled: z.boolean().default(true),
     tasks: z.array(z.string()).default(['build', 'test', 'lint']),
     caching: z.boolean().default(true),
   }),
-  
+
   // Registry integration
   registry: z.object({
     enabled: z.boolean().default(true),
     path: z.string().default('~/.context-pods/registry.db'),
   }),
-  
+
   // Development settings
   dev: z.object({
     hotReload: z.boolean().default(true),
@@ -43,19 +43,19 @@ export const ProjectConfigSchema = z.object({
   name: z.string(),
   version: z.string().default('1.0.0'),
   description: z.string().optional(),
-  
+
   // Template preferences
   templates: z.object({
     preferred: z.string().optional(),
     fallback: z.string().default('basic'),
   }),
-  
+
   // Output configuration
   output: z.object({
     directory: z.string().default('./generated'),
     clean: z.boolean().default(false),
   }),
-  
+
   // Build configuration
   build: z.object({
     target: z.string().default('node18'),
@@ -84,7 +84,7 @@ export interface CommandContext {
 export interface CommandResult {
   success: boolean;
   message?: string;
-  data?: any;
+  data?: unknown;
   error?: Error;
 }
 

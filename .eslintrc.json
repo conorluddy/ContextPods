@@ -4,7 +4,7 @@
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
-    "project": ["./tsconfig.json", "./packages/*/tsconfig.json"]
+    "project": true
   },
   "plugins": ["@typescript-eslint"],
   "extends": [
@@ -30,10 +30,7 @@
         "@typescript-eslint/no-unsafe-member-access": "off",
         "@typescript-eslint/no-unsafe-argument": "off",
         "@typescript-eslint/no-unsafe-call": "off",
-        "@typescript-eslint/no-unnecessary-type-assertion": "off",
-        "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/no-unsafe-enum-comparison": "off",
-        "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-unsafe-return": "off",
         "@typescript-eslint/require-await": "off",
         "@typescript-eslint/no-floating-promises": "off",

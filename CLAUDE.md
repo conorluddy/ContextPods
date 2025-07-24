@@ -1,3 +1,7 @@
 # Agent Guidelines for Context-Pods MCP Farm
 
-*IMPORTANT* - See AGENTS.md
+_IMPORTANT_ - See AGENTS.md
+
+## Development Best Practices
+
+- Important! NEVER EVER BYPASS PRECOMMIT HOOK CHECKS
