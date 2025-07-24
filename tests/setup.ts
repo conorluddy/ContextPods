@@ -3,12 +3,28 @@
  * This file is run before all tests
  */
 
-import { beforeEach, afterEach } from 'vitest'
+import { beforeEach, afterEach, vi } from 'vitest'
 
 // Define resetFileSystemMocks function inline to avoid import issues
 function resetFileSystemMocks() {
   // This will be properly implemented when we have proper mocks
 }
+
+// Mock SQLite3 to avoid native module issues in tests
+vi.mock('sqlite3', () => ({
+  Database: vi.fn().mockImplementation(() => ({
+    run: vi.fn(),
+    get: vi.fn(),
+    all: vi.fn(),
+    close: vi.fn(),
+    prepare: vi.fn().mockReturnValue({
+      run: vi.fn(),
+      get: vi.fn(),
+      all: vi.fn(),
+      finalize: vi.fn()
+    })
+  }))
+}))
 
 // Global test setup
 beforeEach(() => {

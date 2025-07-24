@@ -13,6 +13,7 @@ describe('Server Package', () => {
   })
 
   it('should have registry operations', async () => {
+    // Mock the database to avoid SQLite issues in tests
     const registry = await import('../../src/registry/operations')
     
     // Verify registry exports exist

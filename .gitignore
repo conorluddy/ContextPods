@@ -56,4 +56,4 @@ pnpm-lock.yaml
 .turbo/
 
 # Python virtual environment
-venv/
+venv/packages/server/src/data/registry.db*
