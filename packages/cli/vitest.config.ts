@@ -5,7 +5,6 @@ export default mergeConfig(
   baseConfig,
   defineConfig({
     test: {
-      setupFiles: ['../../tests/setup.ts'],
       coverage: {
         thresholds: {
           lines: 0,      // Will increase per checkpoint

@@ -22,7 +22,7 @@ export default defineConfig({
         statements: 0
       }
     },
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: [path.resolve(__dirname, './tests/setup.ts')],
     testTimeout: 30000,
     hookTimeout: 30000
   },
