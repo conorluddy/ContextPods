@@ -19,7 +19,9 @@
     "noUncheckedIndexedAccess": true,
     "allowSyntheticDefaultImports": true,
     "composite": true,
-    "incremental": true
+    "incremental": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false
   },
   "references": [
     { "path": "./packages/core" },
