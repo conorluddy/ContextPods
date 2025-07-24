@@ -1,0 +1,12 @@
+# Run lint-staged for staged files
+npx lint-staged
+
+# Run full build and test suite
+echo "Running build..."
+npm run build
+
+echo "Running type check..."
+npm run type-check
+
+echo "Running tests..."
+npm run test
