@@ -1,0 +1,81 @@
+version: 2
+updates:
+  # Root package dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "conorluddy"
+    assignees:
+      - "conorluddy"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+      
+  # Core package dependencies  
+  - package-ecosystem: "npm"
+    directory: "/packages/core"
+    schedule:
+      interval: "weekly"
+      day: "monday" 
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "conorluddy"
+    commit-message:
+      prefix: "deps(core)"
+    labels:
+      - "dependencies"
+      - "core"
+      
+  # Server package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00" 
+    open-pull-requests-limit: 3
+    reviewers:
+      - "conorluddy"
+    commit-message:
+      prefix: "deps(server)"
+    labels:
+      - "dependencies"
+      - "server"
+      
+  # CLI package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/cli"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "conorluddy"
+    commit-message:
+      prefix: "deps(cli)"
+    labels:
+      - "dependencies"
+      - "cli"
+      
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "conorluddy"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "github-actions"
+      - "automated"

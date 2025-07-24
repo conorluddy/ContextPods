@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test -- --coverage
+      
+    - name: Build packages
+      run: npm run build
+      
+    - name: Version packages
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        npm version ${{ github.event.inputs.version }} --no-git-tag-version
+        cd packages/core && npm version ${{ github.event.inputs.version }} --no-git-tag-version
+        cd ../server && npm version ${{ github.event.inputs.version }} --no-git-tag-version  
+        cd ../cli && npm version ${{ github.event.inputs.version }} --no-git-tag-version
+        
+    - name: Publish to NPM
+      run: |
+        cd packages/core && npm publish --access public
+        cd ../server && npm publish --access public
+        cd ../cli && npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
+    - name: Create GitHub Release Assets
+      run: |
+        mkdir -p dist
+        tar -czf dist/context-pods-core.tar.gz -C packages/core dist package.json README.md
+        tar -czf dist/context-pods-server.tar.gz -C packages/server dist bin package.json
+        tar -czf dist/context-pods-cli.tar.gz -C packages/cli dist bin package.json
+        
+    - name: Upload Release Assets
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./dist/
+        asset_name: context-pods-packages.tar.gz
+        asset_content_type: application/gzip

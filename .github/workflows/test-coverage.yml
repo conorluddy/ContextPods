@@ -1,0 +1,97 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  coverage:
+    name: Coverage Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js  
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests with coverage
+      run: npm test -- --coverage --reporter=verbose
+      
+    - name: Generate coverage badges
+      run: |
+        npx coverage-badges-cli --source coverage/coverage-summary.json --output coverage/badges
+      continue-on-error: true
+      
+    - name: Coverage Summary
+      run: |
+        echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f coverage/coverage-summary.json ]; then
+          echo "### Overall Coverage" >> $GITHUB_STEP_SUMMARY
+          cat coverage/coverage-summary.json | jq -r '.total | "- **Lines**: \(.lines.pct)%\n- **Functions**: \(.functions.pct)%\n- **Branches**: \(.branches.pct)%\n- **Statements**: \(.statements.pct)%"' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Package Coverage" >> $GITHUB_STEP_SUMMARY
+          for pkg in packages/*/coverage/coverage-summary.json; do
+            if [ -f "$pkg" ]; then
+              pkg_name=$(dirname "$pkg" | sed 's|packages/||')
+              echo "#### $pkg_name" >> $GITHUB_STEP_SUMMARY
+              cat "$pkg" | jq -r '.total | "- Lines: \(.lines.pct)% - Functions: \(.functions.pct)% - Branches: \(.branches.pct)%"' >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+        else
+          echo "No coverage data generated" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('coverage/coverage-summary.json')) {
+            const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+            
+            const body = `## 📊 Test Coverage Report
+            
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${total.lines.pct}% |
+            | Functions | ${total.functions.pct}% |  
+            | Branches | ${total.branches.pct}% |
+            | Statements | ${total.statements.pct}% |
+            
+            🎯 **Checkpoint Progress**: This PR maintains the testing infrastructure foundation for incremental coverage growth.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+          }
+        
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          coverage/
+          packages/*/coverage/
+        retention-days: 30
