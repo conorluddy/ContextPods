@@ -1,0 +1,26 @@
+{
+  "name": "basic-ts-fixture",
+  "description": "Basic TypeScript template fixture for testing",
+  "language": "typescript",
+  "version": "1.0.0",
+  "variables": [
+    {
+      "name": "serverName",
+      "type": "string",
+      "description": "Name of the MCP server",
+      "required": true,
+      "default": "test-server"
+    },
+    {
+      "name": "serverDescription",
+      "type": "string", 
+      "description": "Description of the MCP server",
+      "required": false,
+      "default": "A test MCP server"
+    }
+  ],
+  "optimization": {
+    "turboRepo": true,
+    "hotReload": true
+  }
+}
