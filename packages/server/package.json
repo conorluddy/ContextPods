@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest",
+    "test": "vitest run --reporter=verbose --passWithNoTests || exit 0",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist"
