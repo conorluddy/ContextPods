@@ -53,7 +53,7 @@ export class Logger {
    */
   debug(message: string, ...args: unknown[]): void {
     if (this.level <= LogLevel.DEBUG) {
-      console.log(this.formatMessage('DEBUG', message), ...args);
+      console.warn(this.formatMessage('DEBUG', message), ...args);
     }
   }
 
@@ -62,7 +62,7 @@ export class Logger {
    */
   info(message: string, ...args: unknown[]): void {
     if (this.level <= LogLevel.INFO) {
-      console.log(this.formatMessage('INFO', message), ...args);
+      console.warn(this.formatMessage('INFO', message), ...args);
     }
   }
 

@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
-import { CLIConfig } from '../types/cli-types.js';
+import type { CLIConfig } from '../types/cli-types.js';
 import { output } from './output-formatter.js';
 
 /**

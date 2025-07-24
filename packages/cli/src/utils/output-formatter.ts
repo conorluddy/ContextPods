@@ -3,7 +3,8 @@
  */
 
 import chalk from 'chalk';
-import ora, { Ora } from 'ora';
+import type { Ora } from 'ora';
+import ora from 'ora';
 
 /**
  * Console output utilities

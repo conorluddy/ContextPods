@@ -6,7 +6,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 // import { z } from 'zod'; // Will be used later for validation
-import { CLIConfig, CLIConfigSchema, ProjectConfig, ProjectConfigSchema } from '../types/cli-types.js';
+import type { CLIConfig, ProjectConfig} from '../types/cli-types.js';
+import { CLIConfigSchema, ProjectConfigSchema } from '../types/cli-types.js';
 
 /**
  * Default CLI configuration

@@ -4,7 +4,15 @@
 
 import { join } from 'path';
 import { promises as fs } from 'fs';
-import { TemplateSelector, DefaultTemplateEngine, logger } from '@context-pods/core';
+import { 
+  TemplateSelector, 
+  DefaultTemplateEngine, 
+  logger,
+  type TemplateMetadata,
+  type TemplateVariable,
+  TemplateLanguage,
+  type TemplateProcessingResult
+} from '@context-pods/core';
 import { BaseTool, type ToolResult } from './base-tool.js';
 import { getRegistryOperations } from '../registry/index.js';
 import { CONFIG } from '../config/index.js';
@@ -141,10 +149,10 @@ export class CreateMCPTool extends BaseTool {
       }
 
       // Step 4: Prepare template variables
-      const variables = this.prepareTemplateVariables(typedArgs, template.template);
+      const variables = this.prepareTemplateVariables(typedArgs, template.template as TemplateMetadata);
 
       // Step 5: Validate template variables  
-      const isValid = await this.templateEngine.validateVariables(template.template as any, variables);
+      const isValid = await this.templateEngine.validateVariables(template.template as TemplateMetadata, variables);
       if (!isValid) {
         return {
           success: false,
@@ -168,7 +176,7 @@ export class CreateMCPTool extends BaseTool {
         await registry.markServerBuilding(serverMetadata.id);
 
         // Step 8: Process template
-        const result = await this.templateEngine.process(template.template as any, {
+        const result = await this.templateEngine.process(template.template as TemplateMetadata, {
           variables,
           outputPath,
           templatePath: template.templatePath,
@@ -250,12 +258,12 @@ export class CreateMCPTool extends BaseTool {
 
     // Auto-select template based on language preference
     if (args.language) {
-      const languageMap: Record<string, any> = {
-        'typescript': 'typescript',
-        'javascript': 'nodejs',
-        'python': 'python',
-        'rust': 'rust',
-        'shell': 'shell',
+      const languageMap: Record<string, TemplateLanguage> = {
+        'typescript': TemplateLanguage.TYPESCRIPT,
+        'javascript': TemplateLanguage.NODEJS,
+        'python': TemplateLanguage.PYTHON,
+        'rust': TemplateLanguage.RUST,
+        'shell': TemplateLanguage.SHELL,
       };
       
       const templateLanguage = languageMap[args.language.toLowerCase()];
@@ -291,7 +299,7 @@ export class CreateMCPTool extends BaseTool {
    */
   private prepareTemplateVariables(
     args: CreateMCPArgs,
-    template: any
+    template: TemplateMetadata
   ): Record<string, unknown> {
     const variables: Record<string, unknown> = {
       serverName: args.name,
@@ -310,8 +318,8 @@ export class CreateMCPTool extends BaseTool {
 
     // Add template-specific defaults
     for (const [varName, varDef] of Object.entries(template.variables)) {
-      if (!variables[varName] && (varDef as any).default !== undefined) {
-        variables[varName] = (varDef as any).default;
+      if (!variables[varName] && (varDef as TemplateVariable).default !== undefined) {
+        variables[varName] = (varDef as TemplateVariable).default;
       }
     }
 
@@ -325,7 +333,7 @@ export class CreateMCPTool extends BaseTool {
     name: string,
     templateName: string,
     outputPath: string,
-    result: any
+    result: TemplateProcessingResult
   ): string {
     let message = `🎉 Successfully created MCP server: ${name}\n\n`;
     message += `📋 Details:\n`;

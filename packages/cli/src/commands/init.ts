@@ -5,7 +5,7 @@
 import inquirer from 'inquirer';
 import { configManager } from '../config/index.js';
 import { TemplateSelector } from '@context-pods/core';
-import { CommandContext, CommandResult } from '../types/cli-types.js';
+import type { CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 
 /**

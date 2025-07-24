@@ -3,7 +3,7 @@
  */
 
 import { TemplateSelector } from '@context-pods/core';
-import { CommandContext, CommandResult, TemplateInfo } from '../types/cli-types.js';
+import type { CommandContext, CommandResult, TemplateInfo } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 
 /**

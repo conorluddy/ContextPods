@@ -2,7 +2,7 @@
  * Build command implementation
  */
 
-import { BuildOptions, CommandContext, CommandResult } from '../types/cli-types.js';
+import type { BuildOptions, CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 import { TurboIntegration } from '../utils/turbo-integration.js';
 

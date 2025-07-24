@@ -7,7 +7,7 @@ import { configManager } from './config/index.js';
 import { output } from './utils/output-formatter.js';
 // import { TurboIntegration } from './utils/turbo-integration.js'; // Unused for now
 import { CacheManager } from './utils/cache-manager.js';
-import { CommandContext } from './types/cli-types.js';
+import type { CommandContext } from './types/cli-types.js';
 
 // Import command handlers (these will be implemented next)
 import { wrapCommand } from './commands/wrap.js';
