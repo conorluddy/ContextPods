@@ -4,7 +4,8 @@
 
 import { randomUUID } from 'crypto';
 import { logger } from '@context-pods/core';
-import { getRegistryDatabase, RegistryDatabase } from './database.js';
+import type { RegistryDatabase } from './database.js';
+import { getRegistryDatabase } from './database.js';
 import type {
   MCPServerMetadata,
   CreateMCPServerInput,
