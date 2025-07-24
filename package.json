@@ -9,7 +9,8 @@
   "packageManager": "npm@10.0.0",
   "scripts": {
     "build": "turbo build",
-    "test": "turbo test",
+    "test": "turbo test --",
+    "test:run": "turbo test -- --run",
     "lint": "turbo lint",
     "format": "turbo format",
     "clean": "turbo clean",

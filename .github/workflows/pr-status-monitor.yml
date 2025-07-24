@@ -1,0 +1,150 @@
+name: PR Status Monitor
+
+on:
+  schedule:
+    # Run every 15 minutes during business hours
+    - cron: '*/15 9-17 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Specific PR number to monitor'
+        required: false
+        type: string
+
+jobs:
+  monitor:
+    name: Monitor PR Status
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Monitor PRs and provide assistance
+      run: |
+        echo "🔍 Monitoring PR status and providing assistance..."
+        
+        # Get list of open PRs or specific PR
+        if [ -n "${{ github.event.inputs.pr_number }}" ]; then
+          PRS="${{ github.event.inputs.pr_number }}"
+          echo "📋 Monitoring specific PR: ${PRS}"
+        else
+          PRS=$(gh pr list --state open --json number --jq '.[].number' | head -10)
+          echo "📋 Monitoring open PRs: ${PRS}"
+        fi
+        
+        for pr in $PRS; do
+          echo "🔎 Analyzing PR #${pr}..."
+          
+          # Get PR details
+          PR_TITLE=$(gh pr view $pr --json title --jq '.title')
+          PR_AUTHOR=$(gh pr view $pr --json author --jq '.author.login')
+          PR_STATUS=$(gh pr view $pr --json statusCheckRollup --jq '.statusCheckRollup[0].state // "PENDING"')
+          
+          echo "📄 PR #${pr}: ${PR_TITLE} by ${PR_AUTHOR}"
+          echo "📊 Status: ${PR_STATUS}"
+          
+          # Check if CI is failing
+          FAILING_CHECKS=$(gh pr view $pr --json statusCheckRollup --jq '.statusCheckRollup[] | select(.state == "FAILURE") | .name')
+          
+          if [ -n "$FAILING_CHECKS" ]; then
+            echo "❌ Failing checks detected:"
+            echo "$FAILING_CHECKS"
+            
+            # Provide helpful guidance
+            GUIDANCE=""
+            
+            if echo "$FAILING_CHECKS" | grep -qi "lint"; then
+              GUIDANCE="${GUIDANCE}\n- **Linting Issues**: Run \`npm run lint -- --fix\` to auto-fix most issues"
+            fi
+            
+            if echo "$FAILING_CHECKS" | grep -qi "type"; then
+              GUIDANCE="${GUIDANCE}\n- **TypeScript Issues**: Run \`npm run type-check\` to identify type errors"
+            fi
+            
+            if echo "$FAILING_CHECKS" | grep -qi "test"; then
+              GUIDANCE="${GUIDANCE}\n- **Test Failures**: Run \`npm test\` locally to debug failing tests"
+            fi
+            
+            if echo "$FAILING_CHECKS" | grep -qi "build"; then
+              GUIDANCE="${GUIDANCE}\n- **Build Issues**: Run \`npm run build\` to identify compilation errors"
+            fi
+            
+            # Post helpful comment if we have guidance
+            if [ -n "$GUIDANCE" ]; then
+              gh pr comment $pr --body "## 🤖 CI Assistance
+              
+              I noticed some CI checks are failing. Here are some suggestions to help resolve them:
+              
+              ${GUIDANCE}
+              
+              ### Quick Commands
+              \`\`\`bash
+              # Fix common issues
+              npm run lint -- --fix
+              npm run type-check
+              npm test
+              npm run build
+              \`\`\`
+              
+              ### Self-Healing Option
+              You can also trigger the self-healing CI by running:
+              \`\`\`
+              gh workflow run self-healing-ci.yml -f heal_pr=${pr}
+              \`\`\`
+              
+              Let me know if you need any help! 🚀
+              
+              *Automated assistance by Context-Pods CI Monitor*"
+              
+              echo "💬 Posted helpful guidance comment on PR #${pr}"
+            fi
+          else
+            echo "✅ PR #${pr} is in good shape!"
+          fi
+          
+          echo "---"
+        done
+        
+        echo "🎉 Monitoring complete!"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  health_check:
+    name: CI Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check overall CI health
+      run: |
+        echo "🏥 Checking overall CI system health..."
+        
+        # Get recent workflow runs
+        RECENT_RUNS=$(gh run list --limit 20 --json status,conclusion,name,createdAt --jq '.[] | select(.createdAt > (now - 86400) and .name == "CI/CD Pipeline")')
+        
+        SUCCESS_COUNT=$(echo "$RECENT_RUNS" | jq -r 'select(.conclusion == "success")' | wc -l)
+        FAILURE_COUNT=$(echo "$RECENT_RUNS" | jq -r 'select(.conclusion == "failure")' | wc -l)
+        TOTAL_COUNT=$(echo "$RECENT_RUNS" | wc -l)
+        
+        if [ $TOTAL_COUNT -gt 0 ]; then
+          SUCCESS_RATE=$(( SUCCESS_COUNT * 100 / TOTAL_COUNT ))
+          echo "📊 CI Success Rate (24h): ${SUCCESS_RATE}% (${SUCCESS_COUNT}/${TOTAL_COUNT})"
+          
+          if [ $SUCCESS_RATE -lt 80 ]; then
+            echo "⚠️ CI success rate is below 80%. Consider investigating common failure patterns."
+            
+            # Analyze failure patterns
+            echo "🔍 Analyzing failure patterns..."
+            FAILURE_REASONS=$(gh run list --limit 50 --json conclusion,jobs --jq '.[] | select(.conclusion == "failure") | .jobs[] | select(.conclusion == "failure") | .name' | sort | uniq -c | sort -nr)
+            
+            echo "Most common failure reasons:"
+            echo "$FAILURE_REASONS"
+          else
+            echo "✅ CI health is good!"
+          fi
+        else
+          echo "ℹ️ No recent CI runs found"
+        fi
+        
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

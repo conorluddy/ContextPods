@@ -11,8 +11,8 @@ function resetFileSystemMocks() {
 }
 
 // Mock SQLite3 to avoid native module issues in tests
-vi.mock('sqlite3', () => ({
-  Database: vi.fn().mockImplementation(() => ({
+vi.mock('sqlite3', () => {
+  const mockDatabase = vi.fn().mockImplementation(() => ({
     run: vi.fn(),
     get: vi.fn(),
     all: vi.fn(),
@@ -24,7 +24,14 @@ vi.mock('sqlite3', () => ({
       finalize: vi.fn()
     })
   }))
-}))
+  
+  return {
+    default: {
+      Database: mockDatabase
+    },
+    Database: mockDatabase
+  }
+})
 
 // Global test setup
 beforeEach(() => {

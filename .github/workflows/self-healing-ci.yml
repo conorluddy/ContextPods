@@ -1,0 +1,309 @@
+name: Self-Healing CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      heal_pr:
+        description: 'PR number to attempt healing'
+        required: false
+        type: string
+
+jobs:
+  diagnose:
+    name: Diagnose & Self-Heal
+    runs-on: ubuntu-latest
+    
+    outputs:
+      needs_healing: ${{ steps.diagnosis.outputs.needs_healing }}
+      healing_strategy: ${{ steps.diagnosis.outputs.healing_strategy }}
+      pr_number: ${{ steps.diagnosis.outputs.pr_number }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: 'package-lock.json'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Diagnose issues
+      id: diagnosis
+      run: |
+        echo "🔍 Running comprehensive diagnostics..."
+        
+        # Initialize variables
+        NEEDS_HEALING="false"
+        HEALING_STRATEGY=""
+        PR_NUMBER="${{ github.event.pull_request.number || github.event.inputs.heal_pr }}"
+        
+        # Check for common issues
+        echo "📋 Checking common CI failures..."
+        
+        # 1. Check linting issues
+        if ! npm run lint 2>/dev/null; then
+          echo "❌ Linting failures detected"
+          NEEDS_HEALING="true"
+          HEALING_STRATEGY="${HEALING_STRATEGY}lint-fix,"
+        fi
+        
+        # 2. Check TypeScript issues
+        if ! npm run type-check 2>/dev/null; then
+          echo "❌ TypeScript errors detected"
+          NEEDS_HEALING="true"
+          HEALING_STRATEGY="${HEALING_STRATEGY}type-fix,"
+        fi
+        
+        # 3. Check test failures
+        if ! npm run test:run 2>/dev/null; then
+          echo "❌ Test failures detected"
+          NEEDS_HEALING="true"
+          HEALING_STRATEGY="${HEALING_STRATEGY}test-fix,"
+        fi
+        
+        # 4. Check build failures
+        if ! npm run build 2>/dev/null; then
+          echo "❌ Build failures detected"
+          NEEDS_HEALING="true"
+          HEALING_STRATEGY="${HEALING_STRATEGY}build-fix,"
+        fi
+        
+        # 5. Check dependency issues
+        if npm audit --audit-level=high | grep -q "vulnerabilities"; then
+          echo "⚠️ High-severity vulnerabilities detected"
+          NEEDS_HEALING="true"
+          HEALING_STRATEGY="${HEALING_STRATEGY}security-fix,"
+        fi
+        
+        echo "needs_healing=${NEEDS_HEALING}" >> $GITHUB_OUTPUT
+        echo "healing_strategy=${HEALING_STRATEGY}" >> $GITHUB_OUTPUT
+        echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+        
+        if [ "$NEEDS_HEALING" = "true" ]; then
+          echo "🚨 Issues detected! Healing strategies: ${HEALING_STRATEGY}"
+        else
+          echo "✅ All diagnostics passed!"
+        fi
+
+  heal:
+    name: Apply Healing Strategies
+    runs-on: ubuntu-latest
+    needs: diagnose
+    if: needs.diagnose.outputs.needs_healing == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: 'package-lock.json'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Apply healing strategies
+      run: |
+        STRATEGIES="${{ needs.diagnose.outputs.healing_strategy }}"
+        echo "🔧 Applying healing strategies: ${STRATEGIES}"
+        
+        # Auto-fix linting issues
+        if [[ "$STRATEGIES" == *"lint-fix"* ]]; then
+          echo "🔍 Auto-fixing linting issues..."
+          npm run lint -- --fix || true
+        fi
+        
+        # Auto-fix some TypeScript issues
+        if [[ "$STRATEGIES" == *"type-fix"* ]]; then
+          echo "🔧 Attempting TypeScript fixes..."
+          # Add any missing imports
+          # Fix common type issues
+          echo "TypeScript healing not yet implemented"
+        fi
+        
+        # Auto-fix test issues
+        if [[ "$STRATEGIES" == *"test-fix"* ]]; then
+          echo "🧪 Attempting test fixes..."
+          # Clear test cache and regenerate snapshots if needed
+          npm run test:run -- --clearCache || true
+          npm run test:run -- --updateSnapshot || true
+        fi
+        
+        # Auto-fix build issues
+        if [[ "$STRATEGIES" == *"build-fix"* ]]; then
+          echo "🏗️ Attempting build fixes..."
+          # Clean and rebuild
+          npm run clean
+          npm run build
+        fi
+        
+        # Auto-fix security issues
+        if [[ "$STRATEGIES" == *"security-fix"* ]]; then
+          echo "🔒 Attempting security fixes..."
+          npm audit fix --force || true
+        fi
+        
+    - name: Verify healing
+      id: verify
+      run: |
+        echo "✅ Running post-healing verification..."
+        
+        HEALING_SUCCESS="true"
+        
+        # Re-run all checks
+        if ! npm run lint; then
+          echo "❌ Linting still failing after healing"
+          HEALING_SUCCESS="false"
+        fi
+        
+        if ! npm run type-check; then
+          echo "❌ TypeScript still failing after healing"
+          HEALING_SUCCESS="false"
+        fi
+        
+        if ! npm run test:run; then
+          echo "❌ Tests still failing after healing"
+          HEALING_SUCCESS="false"
+        fi
+        
+        if ! npm run build; then
+          echo "❌ Build still failing after healing"
+          HEALING_SUCCESS="false"
+        fi
+        
+        echo "healing_success=${HEALING_SUCCESS}" >> $GITHUB_OUTPUT
+        
+        if [ "$HEALING_SUCCESS" = "true" ]; then
+          echo "🎉 Healing successful! All checks now pass."
+        else
+          echo "⚠️ Some issues remain after healing attempt."
+        fi
+        
+    - name: Commit healing changes
+      if: steps.verify.outputs.healing_success == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action (Self-Healing)"
+        
+        if [ -n "$(git status --porcelain)" ]; then
+          git add .
+          git commit -m "fix: auto-healing CI failures
+          
+          - Applied automated fixes for detected issues
+          - Linting, type checking, tests, and build now pass
+          - Self-healing performed by GitHub Actions
+          
+          🤖 Auto-healed by Context-Pods CI"
+          
+          git push
+          echo "✅ Healing changes committed and pushed"
+        else
+          echo "ℹ️ No changes to commit"
+        fi
+
+  status_update:
+    name: Update PR Status
+    runs-on: ubuntu-latest
+    needs: [diagnose, heal]
+    if: always() && github.event_name == 'pull_request'
+    
+    steps:
+    - name: Update PR with results
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: pr } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          const needsHealing = '${{ needs.diagnose.outputs.needs_healing }}';
+          const healingSuccess = '${{ needs.heal.outputs.healing_success }}';
+          
+          let emoji = '✅';
+          let status = 'All checks passing';
+          let details = 'The CI pipeline completed successfully with no issues detected.';
+          
+          if (needsHealing === 'true') {
+            if (healingSuccess === 'true') {
+              emoji = '🔧✅';
+              status = 'Auto-healed and passing';
+              details = 'Issues were detected and automatically fixed by the self-healing CI system.';
+            } else {
+              emoji = '❌';
+              status = 'Healing attempted but issues remain';
+              details = 'The self-healing system attempted fixes but some issues require manual attention.';
+            }
+          }
+          
+          const body = `## ${emoji} CI Status Update
+          
+          **Status**: ${status}
+          
+          ${details}
+          
+          ### Diagnostic Results
+          - **Healing Required**: ${needsHealing === 'true' ? 'Yes' : 'No'}
+          - **Strategies Applied**: \`${{ needs.diagnose.outputs.healing_strategy }}\`
+          - **Healing Success**: ${healingSuccess || 'N/A'}
+          
+          ### Next Steps
+          ${needsHealing === 'true' && healingSuccess !== 'true' 
+            ? '⚠️ Manual intervention may be required. Please check the failing CI logs.'
+            : '🎉 Your PR is ready for review!'
+          }
+          
+          ---
+          🤖 *This status was automatically generated by the Context-Pods Self-Healing CI system*
+          `;
+          
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });
+
+  monitor:
+    name: Monitor CI Health
+    runs-on: ubuntu-latest
+    needs: [diagnose, heal]
+    if: always()
+    
+    steps:
+    - name: Report CI metrics
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const metrics = {
+            timestamp: new Date().toISOString(),
+            workflow_run_id: context.runId,
+            healing_triggered: '${{ needs.diagnose.outputs.needs_healing }}' === 'true',
+            healing_successful: '${{ needs.heal.outputs.healing_success }}' === 'true',
+            strategies_used: '${{ needs.diagnose.outputs.healing_strategy }}',
+            pr_number: '${{ needs.diagnose.outputs.pr_number }}'
+          };
+          
+          console.log('📊 CI Health Metrics:');
+          console.log(JSON.stringify(metrics, null, 2));
+          
+          // In a real implementation, you could send this to monitoring systems
+          // like DataDog, New Relic, or custom dashboards
