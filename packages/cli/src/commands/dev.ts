@@ -3,7 +3,7 @@
  */
 
 import chokidar from 'chokidar';
-import { DevOptions, CommandContext, CommandResult } from '../types/cli-types.js';
+import type { DevOptions, CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 import { TurboIntegration } from '../utils/turbo-integration.js';
 

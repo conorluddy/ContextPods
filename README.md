@@ -6,7 +6,6 @@
 [![Meta-MCP Server](https://img.shields.io/badge/Meta--MCP-Live-brightgreen.svg)](docs/META_MCP_GUIDE.md)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/conorluddy/ContextPods)
 
-
 > _Where context creates context_
 
 **Context-Pods** is a revolutionary **self-hosting MCP development suite** that uses the Model Context Protocol itself as the interface for creating, managing, and deploying other MCP servers. The **Meta-MCP Server is now LIVE** - enabling AI systems to create their own tools via natural language! 🚀
@@ -23,7 +22,7 @@ Claude: I'll create a PDF processing MCP server for you!
 
 Result: ✅ Complete TypeScript MCP server with:
 - PDF parsing tools (pdf-parse integration)
-- Text extraction with error handling  
+- Text extraction with error handling
 - MCP protocol compliance
 - Tests and documentation
 - Ready to use immediately
@@ -40,14 +39,14 @@ The revolutionary **Meta-MCP Server** exposes Context-Pods functionality via the
 **🔧 Live MCP Tools:**
 
 - `create-mcp` - Generate new MCP servers from natural language descriptions
-- `wrap-script` - Convert existing scripts into MCP servers  
+- `wrap-script` - Convert existing scripts into MCP servers
 - `list-mcps` - Show all managed MCP servers with status
 - `validate-mcp` - Validate MCP servers against standards
 
 **📋 Live MCP Resources:**
 
 - `context-pods://templates/` - Available templates with metadata
-- `context-pods://mcps/` - All managed MCP servers  
+- `context-pods://mcps/` - All managed MCP servers
 - `context-pods://status` - System status and health
 - `context-pods://statistics` - Usage statistics and analytics
 
@@ -65,12 +64,13 @@ Each conversation creates new MCP servers that become part of your growing ecosy
 ```
 generated/
 ├── pdf-processor/        # "I need PDF processing" → Complete PDF MCP server
-├── postgresql-manager/   # "Connect to PostgreSQL" → Database MCP server  
+├── postgresql-manager/   # "Connect to PostgreSQL" → Database MCP server
 ├── stripe-integration/   # "Wrap the Stripe API" → Payments MCP server
 └── file-operations/      # "Local file operations" → File management MCP server
 ```
 
 **All generated servers are:**
+
 - 🔧 **Immediately usable** - Ready to connect to any MCP client
 - 📦 **Self-contained** - Complete with dependencies, tests, docs
 - 🔄 **Hot-reloadable** - Changes reflect instantly during development
@@ -211,14 +211,14 @@ templates/
 
 ### 🔄 **Development Roadmap**
 
-| Phase            | Status             | Focus                           | Issues                                                                                                                 |
-| ---------------- | ------------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **Foundation**   | ✅ **COMPLETE**    | TurboRepo setup, Core Pod       | [#2](https://github.com/conorluddy/ContextPods/issues/2), [#3](https://github.com/conorluddy/ContextPods/issues/3)     |
-| **Generation**   | ✅ **COMPLETE**    | Template system, CLI tools      | [#4](https://github.com/conorluddy/ContextPods/issues/4) ✅, [#5](https://github.com/conorluddy/ContextPods/issues/5) ✅ |
-| **Meta-MCP**     | ✅ **COMPLETE**    | MCP Server Interface            | [#22](https://github.com/conorluddy/ContextPods/issues/22) ✅                                                           |
-| **Management**   | 🚀 **NEXT**        | Pod modification, Testing       | [#6](https://github.com/conorluddy/ContextPods/issues/6), [#7](https://github.com/conorluddy/ContextPods/issues/7)     |
-| **Scale**        | 📋 **PLANNED**     | Orchestration, Deployment       | [#12](https://github.com/conorluddy/ContextPods/issues/12), [#16](https://github.com/conorluddy/ContextPods/issues/16) |
-| **Intelligence** | 📋 **PLANNED**     | AI optimization, Polish         | [#15](https://github.com/conorluddy/ContextPods/issues/15), [#11](https://github.com/conorluddy/ContextPods/issues/11) |
+| Phase            | Status          | Focus                      | Issues                                                                                                                   |
+| ---------------- | --------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Foundation**   | ✅ **COMPLETE** | TurboRepo setup, Core Pod  | [#2](https://github.com/conorluddy/ContextPods/issues/2), [#3](https://github.com/conorluddy/ContextPods/issues/3)       |
+| **Generation**   | ✅ **COMPLETE** | Template system, CLI tools | [#4](https://github.com/conorluddy/ContextPods/issues/4) ✅, [#5](https://github.com/conorluddy/ContextPods/issues/5) ✅ |
+| **Meta-MCP**     | ✅ **COMPLETE** | MCP Server Interface       | [#22](https://github.com/conorluddy/ContextPods/issues/22) ✅                                                            |
+| **Management**   | 🚀 **NEXT**     | Pod modification, Testing  | [#6](https://github.com/conorluddy/ContextPods/issues/6), [#7](https://github.com/conorluddy/ContextPods/issues/7)       |
+| **Scale**        | 📋 **PLANNED**  | Orchestration, Deployment  | [#12](https://github.com/conorluddy/ContextPods/issues/12), [#16](https://github.com/conorluddy/ContextPods/issues/16)   |
+| **Intelligence** | 📋 **PLANNED**  | AI optimization, Polish    | [#15](https://github.com/conorluddy/ContextPods/issues/15), [#11](https://github.com/conorluddy/ContextPods/issues/11)   |
 
 > 📋 **Track Progress**: [View all issues](https://github.com/conorluddy/ContextPods/issues) | [Active PR #18](https://github.com/conorluddy/ContextPods/pull/18)
 
@@ -287,9 +287,28 @@ cd ContextPods
 npm install
 npm run build
 
+# Setup pre-commit hooks (automatically runs after npm install)
+# Pre-commit hooks enforce code quality with linting, type checking, building, and testing
+
 # Verify everything is ready
 npm run mcp:status
 # ✅ Status: READY - The Meta-MCP Server is ready to run!
+```
+
+### **Development Workflow**
+
+Context-Pods includes pre-commit hooks that automatically enforce code quality:
+
+- **Linting**: ESLint with auto-fix for staged files
+- **Formatting**: Prettier auto-formatting for staged files
+- **Type Checking**: Full TypeScript validation
+- **Building**: Ensures all packages build successfully
+- **Testing**: Runs the complete test suite
+
+**Bypassing hooks** (emergency use only):
+
+```bash
+git commit --no-verify -m "Emergency commit"
 ```
 
 ### **Step 2: Connect to Claude Desktop**
@@ -320,7 +339,7 @@ Claude: I'll create a PostgreSQL MCP server for you!
 *calls Context-Pods create-mcp tool*
 → ✅ Complete postgresql-manager server created
 → 🔧 Database connection tools
-→ 📝 Query execution with parameterization  
+→ 📝 Query execution with parameterization
 → 🛡️ Connection pooling and error handling
 → 📚 Complete documentation and tests
 ```
@@ -363,8 +382,9 @@ npm run mcp:dev
 ```
 
 **📖 Complete Documentation:**
+
 - [Meta-MCP Server Guide](docs/META_MCP_GUIDE.md) - Detailed usage and examples
-- [MCP Client Setup](docs/MCP_CLIENT_SETUP.md) - Configuration for all MCP clients  
+- [MCP Client Setup](docs/MCP_CLIENT_SETUP.md) - Configuration for all MCP clients
 - [Architecture Guide](docs/ARCHITECTURE.md) - Technical implementation details
 
 ### **Using the Template System**

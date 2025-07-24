@@ -6,5 +6,10 @@
     "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["tests/**/*", "dist/**/*"]
+  "exclude": ["tests/**/*", "dist/**/*"],
+  "references": [
+    {
+      "path": "../core"
+    }
+  ]
 }

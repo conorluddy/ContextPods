@@ -174,7 +174,7 @@ export class RegistryDatabase {
       this.db!.run(
         sql,
         [row.name, row.template, row.path, row.status, row.metadata, row.updated_at, id],
-        function (this: any, error: Error | null) {
+        function (this: sqlite3.RunResult, error: Error | null) {
           if (error) {
             logger.error('Error updating server:', error);
             reject(error);
@@ -198,7 +198,7 @@ export class RegistryDatabase {
     const sql = 'DELETE FROM mcp_servers WHERE id = ?';
 
     return new Promise((resolve, reject) => {
-      this.db!.run(sql, [id], function (this: any, error: Error | null) {
+      this.db!.run(sql, [id], function (this: sqlite3.RunResult, error: Error | null) {
         if (error) {
           logger.error('Error deleting server:', error);
           reject(error);

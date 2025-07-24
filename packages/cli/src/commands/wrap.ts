@@ -5,8 +5,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import inquirer from 'inquirer';
-import { TemplateSelector, DefaultTemplateEngine, TemplateSelectionResult } from '@context-pods/core';
-import { WrapOptions, CommandContext, CommandResult } from '../types/cli-types.js';
+import type { TemplateSelectionResult } from '@context-pods/core';
+import { TemplateSelector, DefaultTemplateEngine } from '@context-pods/core';
+import type { WrapOptions, CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 import { CacheManager } from '../utils/cache-manager.js';
 

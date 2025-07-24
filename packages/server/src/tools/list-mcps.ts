@@ -3,7 +3,7 @@
  */
 
 import { BaseTool, type ToolResult } from './base-tool.js';
-import { getRegistryOperations, MCPServerStatus, type MCPServerFilters } from '../registry/index.js';
+import { getRegistryOperations, MCPServerStatus, type MCPServerFilters, type MCPServerMetadata } from '../registry/index.js';
 
 /**
  * Arguments for list-mcps tool
@@ -157,7 +157,7 @@ export class ListMCPsTool extends BaseTool {
   /**
    * Format servers as table
    */
-  private formatAsTable(servers: any[]): string {
+  private formatAsTable(servers: MCPServerMetadata[]): string {
     if (servers.length === 0) {
       return '📦 No MCP servers found.\n\nUse the "create-mcp" or "wrap-script" tools to generate your first MCP server.';
     }
@@ -193,7 +193,7 @@ export class ListMCPsTool extends BaseTool {
   /**
    * Format servers as JSON
    */
-  private formatAsJSON(servers: any[]): string {
+  private formatAsJSON(servers: MCPServerMetadata[]): string {
     if (servers.length === 0) {
       return JSON.stringify({
         servers: [],
