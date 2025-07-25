@@ -1,0 +1,26 @@
+{
+  "name": "basic-ts",
+  "description": "Basic TypeScript MCP server template for testing",
+  "version": "1.0.0",
+  "language": "typescript",
+  "variables": [
+    {
+      "name": "serverName",
+      "description": "The name of your MCP server",
+      "type": "string",
+      "required": true,
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    {
+      "name": "serverDescription",
+      "description": "A brief description of your server",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "optimization": {
+    "turboRepo": false,
+    "hotReload": false
+  },
+  "files": ["package.json.mustache", "src/index.ts.mustache"]
+}
