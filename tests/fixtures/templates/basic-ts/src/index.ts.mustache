@@ -1,0 +1,73 @@
+#!/usr/bin/env node
+
+/**
+ * {{serverDescription}}
+ */
+
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+// Create server instance
+const server = new Server(
+  {
+    name: '{{serverName}}',
+    version: '0.1.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Define a simple tool
+server.setRequestHandler('tools/list', async () => {
+  return {
+    tools: [
+      {
+        name: 'hello',
+        description: 'Say hello',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name to greet',
+            },
+          },
+          required: ['name'],
+        },
+      },
+    ],
+  };
+});
+
+// Handle tool calls
+server.setRequestHandler('tools/call', async (request) => {
+  if (request.params.name === 'hello') {
+    const name = request.params.arguments?.name as string;
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Hello, ${name}!`,
+        },
+      ],
+    };
+  }
+  
+  throw new Error(`Unknown tool: ${request.params.name}`);
+});
+
+// Start the server
+const transport = new StdioServerTransport();
+server.connect(transport);
+
+// Handle errors
+server.onerror = (error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+};
+
+// Log startup
+console.error('{{serverName}} MCP server started');
