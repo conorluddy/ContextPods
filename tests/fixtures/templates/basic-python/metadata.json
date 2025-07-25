@@ -1,0 +1,19 @@
+{
+  "name": "basic-python",
+  "description": "Basic Python MCP server template for testing",
+  "version": "1.0.0",
+  "language": "python",
+  "variables": [
+    {
+      "name": "serverName",
+      "description": "The name of your MCP server",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "optimization": {
+    "turboRepo": false,
+    "hotReload": false
+  },
+  "files": ["main.py.mustache", "requirements.txt.mustache"]
+}
