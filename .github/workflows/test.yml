@@ -47,7 +47,9 @@ jobs:
         if: matrix.node-version == '24.x'
         run: |
           # Run tests with coverage for packages that have tests
-          npx turbo test --filter=@context-pods/core -- --coverage || true
+          cd packages/core && npm run test:coverage || true
+          cd ../server && npm run test:coverage || true
+          cd ../cli && npm run test:coverage || true
 
       - name: Upload coverage to Codecov
         if: matrix.node-version == '24.x'
@@ -56,6 +58,7 @@ jobs:
           fail_ci_if_error: false
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/core/coverage/lcov.info,./packages/server/coverage/lcov.info,./packages/cli/coverage/lcov.info
 
   lint:
     runs-on: ubuntu-latest
