@@ -3,7 +3,12 @@
  */
 
 import { BaseTool, type ToolResult } from './base-tool.js';
-import { getRegistryOperations, MCPServerStatus, type MCPServerFilters, type MCPServerMetadata } from '../registry/index.js';
+import {
+  getRegistryOperations,
+  MCPServerStatus,
+  type MCPServerFilters,
+  type MCPServerMetadata,
+} from '../registry/index.js';
 
 /**
  * Arguments for list-mcps tool
@@ -108,7 +113,6 @@ export class ListMCPsTool extends BaseTool {
         success: true,
         data: output,
       };
-
     } catch (error) {
       return {
         success: false,
@@ -165,9 +169,12 @@ export class ListMCPsTool extends BaseTool {
     let output = `📦 Managed MCP Servers (${servers.length} total)\n\n`;
 
     // Table header
-    output += '┌─────────────────┬──────────────┬─────────────────┬──────────────────┬─────────────────┐\n';
-    output += '│ Name            │ Status       │ Template        │ Language         │ Created         │\n';
-    output += '├─────────────────┼──────────────┼─────────────────┼──────────────────┼─────────────────┤\n';
+    output +=
+      '┌─────────────────┬──────────────┬─────────────────┬──────────────────┬─────────────────┐\n';
+    output +=
+      '│ Name            │ Status       │ Template        │ Language         │ Created         │\n';
+    output +=
+      '├─────────────────┼──────────────┼─────────────────┼──────────────────┼─────────────────┤\n';
 
     // Table rows
     for (const server of servers) {
@@ -180,7 +187,8 @@ export class ListMCPsTool extends BaseTool {
       output += `│ ${this.pad(name, 15)} │ ${this.pad(status, 12)} │ ${this.pad(template, 15)} │ ${this.pad(language, 16)} │ ${this.pad(created, 15)} │\n`;
     }
 
-    output += '└─────────────────┴──────────────┴─────────────────┴──────────────────┴─────────────────┘\n';
+    output +=
+      '└─────────────────┴──────────────┴─────────────────┴──────────────────┴─────────────────┘\n';
 
     // Add usage information
     output += '\n💡 Use "list-mcps --format=json" for detailed information';
@@ -195,34 +203,42 @@ export class ListMCPsTool extends BaseTool {
    */
   private formatAsJSON(servers: MCPServerMetadata[]): string {
     if (servers.length === 0) {
-      return JSON.stringify({
-        servers: [],
-        count: 0,
-        message: 'No MCP servers found',
-      }, null, 2);
+      return JSON.stringify(
+        {
+          servers: [],
+          count: 0,
+          message: 'No MCP servers found',
+        },
+        null,
+        2,
+      );
     }
 
-    return JSON.stringify({
-      servers: servers.map(server => ({
-        id: server.id,
-        name: server.name,
-        status: server.status,
-        template: server.template,
-        path: server.path,
-        language: server.metadata.language,
-        description: server.metadata.description,
-        tags: server.metadata.tags,
-        turboOptimized: server.metadata.turboOptimized,
-        buildCommand: server.metadata.buildCommand,
-        devCommand: server.metadata.devCommand,
-        lastBuildStatus: server.metadata.lastBuildStatus,
-        lastBuildTime: server.metadata.lastBuildTime,
-        errorMessage: server.metadata.errorMessage,
-        createdAt: server.createdAt,
-        updatedAt: server.updatedAt,
-      })),
-      count: servers.length,
-    }, null, 2);
+    return JSON.stringify(
+      {
+        servers: servers.map((server) => ({
+          id: server.id,
+          name: server.name,
+          status: server.status,
+          template: server.template,
+          path: server.path,
+          language: server.metadata.language,
+          description: server.metadata.description,
+          tags: server.metadata.tags,
+          turboOptimized: server.metadata.turboOptimized,
+          buildCommand: server.metadata.buildCommand,
+          devCommand: server.metadata.devCommand,
+          lastBuildStatus: server.metadata.lastBuildStatus,
+          lastBuildTime: server.metadata.lastBuildTime,
+          errorMessage: server.metadata.errorMessage,
+          createdAt: server.createdAt,
+          updatedAt: server.updatedAt,
+        })),
+        count: servers.length,
+      },
+      null,
+      2,
+    );
   }
 
   /**
@@ -241,7 +257,7 @@ export class ListMCPsTool extends BaseTool {
     // Status breakdown
     output += `📋 By Status:\n`;
     for (const [status, count] of Object.entries(stats.byStatus)) {
-      if ((count as number) > 0) {
+      if (typeof count === 'number' && count > 0) {
         const emoji = this.getStatusEmoji(status as MCPServerStatus);
         output += `- ${emoji} ${status}: ${count}\n`;
       }
@@ -251,11 +267,11 @@ export class ListMCPsTool extends BaseTool {
     if (Object.keys(stats.byTemplate).length > 0) {
       output += `\n🎨 By Template:\n`;
       const sortedTemplates = Object.entries(stats.byTemplate)
-        .sort(([,a], [,b]) => (b as number) - (a as number))
+        .sort(([, a], [, b]) => (typeof b === 'number' ? b : 0) - (typeof a === 'number' ? a : 0))
         .slice(0, 5); // Top 5 templates
 
       for (const [template, count] of sortedTemplates) {
-        output += `- ${template}: ${count}\n`;
+        output += `- ${template}: ${typeof count === 'number' ? count : 0}\n`;
       }
 
       if (Object.keys(stats.byTemplate).length > 5) {
@@ -266,9 +282,7 @@ export class ListMCPsTool extends BaseTool {
     // Recent servers
     if (servers.length > 0) {
       output += `\n🕒 Recent Servers:\n`;
-      const recent = servers
-        .sort((a, b) => b.createdAt - a.createdAt)
-        .slice(0, 3);
+      const recent = servers.sort((a, b) => b.createdAt - a.createdAt).slice(0, 3);
 
       for (const server of recent) {
         const emoji = this.getStatusEmoji(server.status);
@@ -323,7 +337,7 @@ export class ListMCPsTool extends BaseTool {
   private formatDate(timestamp: number): string {
     const now = Date.now();
     const diff = now - timestamp;
-    
+
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));

@@ -14,12 +14,15 @@ import { output } from './output-formatter.js';
  */
 interface TurboConfig {
   globalDependencies?: string[];
-  pipeline?: Record<string, {
-    dependsOn?: string[];
-    outputs?: string[];
-    cache?: boolean;
-    inputs?: string[];
-  }>;
+  pipeline?: Record<
+    string,
+    {
+      dependsOn?: string[];
+      outputs?: string[];
+      cache?: boolean;
+      inputs?: string[];
+    }
+  >;
 }
 
 /**
@@ -45,11 +48,11 @@ export class TurboIntegration {
     try {
       // Check if turbo is installed
       await execa('turbo', ['--version'], { cwd: this.workspaceRoot });
-      
+
       // Check if turbo.json exists
       const turboConfigPath = path.join(this.workspaceRoot, 'turbo.json');
       await fs.access(turboConfigPath);
-      
+
       return true;
     } catch {
       return false;
@@ -66,12 +69,12 @@ export class TurboIntegration {
       filter?: string;
       cwd?: string;
       verbose?: boolean;
-    } = {}
+    } = {},
   ): Promise<ExecaReturnValue> {
     const { args = [], filter, cwd = this.workspaceRoot, verbose = false } = options;
-    
+
     const turboArgs = [command, ...args];
-    
+
     if (filter) {
       turboArgs.push('--filter', filter);
     }
@@ -95,7 +98,7 @@ export class TurboIntegration {
     }
 
     output.startSpinner('Building packages...');
-    
+
     try {
       await this.run('build', { filter, verbose });
       output.succeedSpinner('Build completed successfully');
@@ -114,7 +117,7 @@ export class TurboIntegration {
     }
 
     output.startSpinner('Running tests...');
-    
+
     try {
       await this.run('test', { filter, verbose });
       output.succeedSpinner('Tests completed successfully');
@@ -133,7 +136,7 @@ export class TurboIntegration {
     }
 
     output.startSpinner('Running linter...');
-    
+
     try {
       await this.run('lint', { filter, verbose });
       output.succeedSpinner('Linting completed successfully');
@@ -152,7 +155,7 @@ export class TurboIntegration {
     }
 
     output.info('Starting development mode...');
-    
+
     try {
       // Run in development mode (this will keep running)
       await this.run('dev', { filter, verbose: true });
@@ -172,7 +175,7 @@ export class TurboIntegration {
     }
 
     output.startSpinner('Cleaning build artifacts...');
-    
+
     try {
       await this.run('clean', { filter, verbose: _verbose });
       output.succeedSpinner('Clean completed successfully');
@@ -200,9 +203,9 @@ export class TurboIntegration {
    */
   async updateTurboConfig(updates: Partial<TurboConfig>): Promise<void> {
     const turboConfigPath = path.join(this.workspaceRoot, 'turbo.json');
-    
+
     try {
-      const existingConfig = await this.getTurboConfig() || {};
+      const existingConfig = (await this.getTurboConfig()) || {};
       const newConfig = {
         ...existingConfig,
         ...updates,
@@ -211,7 +214,7 @@ export class TurboIntegration {
           ...updates.pipeline,
         },
       };
-      
+
       await fs.writeFile(turboConfigPath, JSON.stringify(newConfig, null, 2));
       output.success('TurboRepo configuration updated');
     } catch (error) {
@@ -254,7 +257,7 @@ export class TurboIntegration {
     try {
       const packagesDir = path.join(this.workspaceRoot, 'packages');
       const entries = await fs.readdir(packagesDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const packageJsonPath = path.join(packagesDir, entry.name, 'package.json');
@@ -266,7 +269,7 @@ export class TurboIntegration {
           }
         }
       }
-      
+
       return false;
     } catch {
       return false;
@@ -276,23 +279,28 @@ export class TurboIntegration {
   /**
    * Get workspace packages information
    */
-  async getWorkspacePackages(): Promise<Array<{ name: string; path: string; hasTypeScript: boolean }>> {
+  async getWorkspacePackages(): Promise<
+    Array<{ name: string; path: string; hasTypeScript: boolean }>
+  > {
     const packages: Array<{ name: string; path: string; hasTypeScript: boolean }> = [];
-    
+
     try {
       const packagesDir = path.join(this.workspaceRoot, 'packages');
       const entries = await fs.readdir(packagesDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const packagePath = path.join(packagesDir, entry.name);
           const packageJsonPath = path.join(packagePath, 'package.json');
-          
+
           try {
             const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8');
             const packageJson = JSON.parse(packageJsonContent);
-            const hasTypeScript = await fs.access(path.join(packagePath, 'tsconfig.json')).then(() => true).catch(() => false);
-            
+            const hasTypeScript = await fs
+              .access(path.join(packagePath, 'tsconfig.json'))
+              .then(() => true)
+              .catch(() => false);
+
             packages.push({
               name: packageJson.name || entry.name,
               path: packagePath,
@@ -306,7 +314,7 @@ export class TurboIntegration {
     } catch {
       // No packages directory or access error
     }
-    
+
     return packages;
   }
 }

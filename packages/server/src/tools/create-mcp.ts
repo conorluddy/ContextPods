@@ -4,14 +4,13 @@
 
 import { join } from 'path';
 import { promises as fs } from 'fs';
-import { 
-  TemplateSelector, 
-  DefaultTemplateEngine, 
+import {
+  TemplateSelector,
+  DefaultTemplateEngine,
   logger,
   type TemplateMetadata,
-  type TemplateVariable,
   TemplateLanguage,
-  type TemplateProcessingResult
+  type TemplateProcessingResult,
 } from '@context-pods/core';
 import { BaseTool, type ToolResult } from './base-tool.js';
 import { getRegistryOperations } from '../registry/index.js';
@@ -43,17 +42,19 @@ interface TypedTemplateSelectionResult {
       sharedDependencies: boolean;
       buildCaching: boolean;
     };
-    variables: Record<string, {
-      type: string;
-      required: boolean;
-      default?: unknown;
-    }>;
+    variables: Record<
+      string,
+      {
+        type: string;
+        required: boolean;
+        default?: unknown;
+      }
+    >;
   };
   templatePath: string;
   reasons: string[];
   score: number;
 }
-
 
 /**
  * Create MCP server tool implementation
@@ -136,7 +137,7 @@ export class CreateMCPTool extends BaseTool {
 
       // Step 2: Prepare output path
       const outputPath = this.prepareOutputPath(typedArgs);
-      
+
       // Step 3: Check if output directory already exists
       try {
         await fs.access(outputPath);
@@ -149,10 +150,16 @@ export class CreateMCPTool extends BaseTool {
       }
 
       // Step 4: Prepare template variables
-      const variables = this.prepareTemplateVariables(typedArgs, template.template as TemplateMetadata);
+      const variables = this.prepareTemplateVariables(
+        typedArgs,
+        template.template as TemplateMetadata,
+      );
 
-      // Step 5: Validate template variables  
-      const isValid = await this.templateEngine.validateVariables(template.template as TemplateMetadata, variables);
+      // Step 5: Validate template variables
+      const isValid = await this.templateEngine.validateVariables(
+        template.template as TemplateMetadata,
+        variables,
+      );
       if (!isValid) {
         return {
           success: false,
@@ -189,7 +196,10 @@ export class CreateMCPTool extends BaseTool {
         });
 
         if (!result.success) {
-          await registry.markServerError(serverMetadata.id, result.errors?.join(', ') || 'Template processing failed');
+          await registry.markServerError(
+            serverMetadata.id,
+            result.errors?.join(', ') || 'Template processing failed',
+          );
           return {
             success: false,
             error: result.errors?.join(', ') || 'Template processing failed',
@@ -197,11 +207,7 @@ export class CreateMCPTool extends BaseTool {
         }
 
         // Step 9: Mark as ready
-        await registry.markServerReady(
-          serverMetadata.id,
-          result.buildCommand,
-          result.devCommand
-        );
+        await registry.markServerReady(serverMetadata.id, result.buildCommand, result.devCommand);
 
         // Add warnings from template processing
         if (result.warnings) {
@@ -213,7 +219,7 @@ export class CreateMCPTool extends BaseTool {
           typedArgs.name,
           template.template.name,
           outputPath,
-          result
+          result,
         );
 
         return {
@@ -221,16 +227,14 @@ export class CreateMCPTool extends BaseTool {
           data: successMessage,
           warnings,
         };
-
       } catch (error) {
         // Mark server as error if processing failed
         await registry.markServerError(
           serverMetadata.id,
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
         throw error;
       }
-
     } catch (error) {
       logger.error('Error creating MCP server:', error);
       return {
@@ -247,25 +251,25 @@ export class CreateMCPTool extends BaseTool {
     if (args.template) {
       // Specific template requested
       const templates = await this.templateSelector.getAvailableTemplates();
-      const template = templates.find(t => t.template.name === args.template);
-      
+      const template = templates.find((t) => t.template.name === args.template);
+
       if (!template) {
         throw new Error(`Template '${args.template}' not found`);
       }
-      
+
       return template;
     }
 
     // Auto-select template based on language preference
     if (args.language) {
       const languageMap: Record<string, TemplateLanguage> = {
-        'typescript': TemplateLanguage.TYPESCRIPT,
-        'javascript': TemplateLanguage.NODEJS,
-        'python': TemplateLanguage.PYTHON,
-        'rust': TemplateLanguage.RUST,
-        'shell': TemplateLanguage.SHELL,
+        typescript: TemplateLanguage.TYPESCRIPT,
+        javascript: TemplateLanguage.NODEJS,
+        python: TemplateLanguage.PYTHON,
+        rust: TemplateLanguage.RUST,
+        shell: TemplateLanguage.SHELL,
       };
-      
+
       const templateLanguage = languageMap[args.language.toLowerCase()];
       if (templateLanguage) {
         return await this.templateSelector.getRecommendedTemplate(templateLanguage);
@@ -274,9 +278,8 @@ export class CreateMCPTool extends BaseTool {
 
     // Default to TypeScript advanced template
     const templates = await this.templateSelector.getAvailableTemplates();
-    const defaultTemplate = templates.find(t => 
-      t.template.name.includes('typescript') && 
-      t.template.name.includes('advanced')
+    const defaultTemplate = templates.find(
+      (t) => t.template.name.includes('typescript') && t.template.name.includes('advanced'),
     );
 
     return defaultTemplate || templates[0] || null;
@@ -299,7 +302,7 @@ export class CreateMCPTool extends BaseTool {
    */
   private prepareTemplateVariables(
     args: CreateMCPArgs,
-    template: TemplateMetadata
+    template: TemplateMetadata,
   ): Record<string, unknown> {
     const variables: Record<string, unknown> = {
       serverName: args.name,
@@ -318,8 +321,8 @@ export class CreateMCPTool extends BaseTool {
 
     // Add template-specific defaults
     for (const [varName, varDef] of Object.entries(template.variables)) {
-      if (!variables[varName] && (varDef as TemplateVariable).default !== undefined) {
-        variables[varName] = (varDef as TemplateVariable).default;
+      if (!variables[varName] && varDef.default !== undefined) {
+        variables[varName] = varDef.default;
       }
     }
 
@@ -333,29 +336,29 @@ export class CreateMCPTool extends BaseTool {
     name: string,
     templateName: string,
     outputPath: string,
-    result: TemplateProcessingResult
+    result: TemplateProcessingResult,
   ): string {
     let message = `🎉 Successfully created MCP server: ${name}\n\n`;
     message += `📋 Details:\n`;
     message += `- Template: ${templateName}\n`;
     message += `- Output: ${outputPath}\n`;
     message += `- Files generated: ${result.generatedFiles?.length || 0}\n`;
-    
+
     if (result.buildCommand) {
       message += `- Build command: ${result.buildCommand}\n`;
     }
-    
+
     if (result.devCommand) {
       message += `- Dev command: ${result.devCommand}\n`;
     }
 
     message += `\n🚀 Next steps:\n`;
     message += `1. Navigate to: cd ${outputPath}\n`;
-    
+
     if (result.buildCommand) {
       message += `2. Build: ${result.buildCommand}\n`;
     }
-    
+
     if (result.devCommand) {
       message += `3. Start development: ${result.devCommand}\n`;
     }

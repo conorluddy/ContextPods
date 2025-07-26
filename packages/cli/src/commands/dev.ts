@@ -13,33 +13,32 @@ import { TurboIntegration } from '../utils/turbo-integration.js';
 export async function devCommand(
   target: string | undefined,
   options: DevOptions,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<CommandResult> {
   try {
     output.info('Starting development mode...');
-    
+
     const turbo = new TurboIntegration(context.workingDir, context.config);
     const isAvailable = await turbo.isAvailable();
-    
+
     if (!isAvailable) {
       output.warn('TurboRepo not available, falling back to basic development mode');
       return await basicDevMode(target, options, context);
     }
-    
+
     output.info(`Development server starting on port ${options.port || context.config.dev.port}`);
-    
+
     if (options.hotReload !== false && context.config.dev.hotReload) {
       setupHotReload(context);
     }
-    
+
     // Start TurboRepo development mode
     await turbo.dev(target, context.verbose);
-    
+
     return {
       success: true,
       message: 'Development mode started successfully',
     };
-    
   } catch (error) {
     output.error('Failed to start development mode', error as Error);
     return {
@@ -56,17 +55,17 @@ export async function devCommand(
 async function basicDevMode(
   _target: string | undefined,
   options: DevOptions,
-  context: CommandContext
+  context: CommandContext,
 ): Promise<CommandResult> {
   output.info('Starting basic development mode...');
-  
+
   if (options.hotReload !== false) {
     setupHotReload(context);
   }
-  
+
   output.success('Development mode running (basic mode)');
   output.info('Press Ctrl+C to stop');
-  
+
   // Keep the process alive
   return new Promise(() => {
     // This will run indefinitely until stopped
@@ -78,15 +77,15 @@ async function basicDevMode(
  */
 function setupHotReload(context: CommandContext): void {
   const watchPatterns = context.config.dev.watchPatterns;
-  
+
   output.info('Setting up hot reload...');
-  
+
   const watcher = chokidar.watch(watchPatterns, {
     cwd: context.workingDir,
     ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
     persistent: true,
   });
-  
+
   watcher
     .on('change', (path) => {
       output.info(`File changed: ${output.path(path)}`);
@@ -101,9 +100,9 @@ function setupHotReload(context: CommandContext): void {
     .on('error', (error) => {
       output.error('File watcher error', error);
     });
-  
+
   output.success('Hot reload enabled');
-  
+
   // Handle graceful shutdown
   process.on('SIGINT', () => {
     watcher.close();

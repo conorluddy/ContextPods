@@ -4,7 +4,12 @@
 
 import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
-import { TemplateSelector, DefaultTemplateEngine, logger, TemplateLanguage } from '@context-pods/core';
+import {
+  TemplateSelector,
+  DefaultTemplateEngine,
+  logger,
+  TemplateLanguage,
+} from '@context-pods/core';
 import { BaseTool, type ToolResult } from './base-tool.js';
 import { getRegistryOperations } from '../registry/index.js';
 import { CONFIG } from '../config/index.js';
@@ -116,7 +121,7 @@ export class WrapScriptTool extends BaseTool {
 
       // Step 3: Prepare output path
       const outputPath = this.prepareOutputPath(typedArgs);
-      
+
       // Step 4: Check if output directory already exists
       try {
         await fs.access(outputPath);
@@ -172,7 +177,10 @@ export class WrapScriptTool extends BaseTool {
         });
 
         if (!result.success) {
-          await registry.markServerError(serverMetadata.id, result.errors?.join(', ') || 'Template processing failed');
+          await registry.markServerError(
+            serverMetadata.id,
+            result.errors?.join(', ') || 'Template processing failed',
+          );
           return {
             success: false,
             error: result.errors?.join(', ') || 'Template processing failed',
@@ -180,11 +188,7 @@ export class WrapScriptTool extends BaseTool {
         }
 
         // Step 11: Mark as ready
-        await registry.markServerReady(
-          serverMetadata.id,
-          result.buildCommand,
-          result.devCommand
-        );
+        await registry.markServerReady(serverMetadata.id, result.buildCommand, result.devCommand);
 
         // Add warnings from template processing
         if (result.warnings) {
@@ -203,7 +207,7 @@ export class WrapScriptTool extends BaseTool {
           template.template.name,
           outputPath,
           result,
-          scriptAnalysis
+          scriptAnalysis,
         );
 
         return {
@@ -211,16 +215,14 @@ export class WrapScriptTool extends BaseTool {
           data: successMessage,
           warnings,
         };
-
       } catch (error) {
         // Mark server as error if processing failed
         await registry.markServerError(
           serverMetadata.id,
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
         throw error;
       }
-
     } catch (error) {
       logger.error('Error wrapping script:', error);
       return {
@@ -233,7 +235,22 @@ export class WrapScriptTool extends BaseTool {
   /**
    * Analyze script file to determine language and characteristics
    */
-  private async analyzeScript(scriptPath: string) {
+  private async analyzeScript(scriptPath: string): Promise<{
+    language: TemplateLanguage | null;
+    extension: string;
+    filename: string;
+    content: string;
+    size: number;
+    lines: number;
+    warnings: string[];
+    features: {
+      hasShebang: boolean;
+      hasImports: boolean;
+      hasFunctions: boolean;
+      hasClasses: boolean;
+      hasAsyncCode: boolean;
+    };
+  }> {
     const content = await fs.readFile(scriptPath, 'utf8');
     const language = await this.templateEngine.detectLanguage(scriptPath, content);
     const extension = extname(scriptPath).toLowerCase();
@@ -262,7 +279,7 @@ export class WrapScriptTool extends BaseTool {
       analysis.features.hasFunctions = /^def\s+\w+/m.test(content);
       analysis.features.hasClasses = /^class\s+\w+/m.test(content);
       analysis.features.hasAsyncCode = /\basync\s+def\b|\bawait\b/.test(content);
-      
+
       if (!analysis.features.hasImports) {
         analysis.warnings.push('Script has no imports - may be a simple script');
       }
@@ -270,15 +287,16 @@ export class WrapScriptTool extends BaseTool {
       analysis.features.hasImports = /^(import|require)\s+/m.test(content);
       analysis.features.hasFunctions = /function\s+\w+|\w+\s*=\s*\([^)]*\)\s*=>/.test(content);
       analysis.features.hasClasses = /^class\s+\w+/m.test(content);
-      analysis.features.hasAsyncCode = /\basync\s+function\b|\basync\s+\([^)]*\)\s*=>|\bawait\b/.test(content);
-      
+      analysis.features.hasAsyncCode =
+        /\basync\s+function\b|\basync\s+\([^)]*\)\s*=>|\bawait\b/.test(content);
+
       if (!analysis.features.hasImports) {
         analysis.warnings.push('Script has no imports/requires - may be a simple script');
       }
     } else if (language === TemplateLanguage.SHELL) {
       analysis.features.hasShebang = content.startsWith('#!/');
       analysis.features.hasFunctions = /^\s*function\s+\w+|^\s*\w+\s*\(\s*\)\s*\{/m.test(content);
-      
+
       if (!analysis.features.hasShebang) {
         analysis.warnings.push('Shell script missing shebang - may not be executable');
       }
@@ -299,16 +317,16 @@ export class WrapScriptTool extends BaseTool {
   /**
    * Select appropriate template for script wrapping
    */
-  private async selectTemplate(args: WrapScriptArgs, scriptAnalysis: any) {
+  private async selectTemplate(args: WrapScriptArgs, scriptAnalysis: any): Promise<any> {
     if (args.template) {
       // Specific template requested
       const templates = await this.templateSelector.getAvailableTemplates();
-      const template = templates.find(t => t.template.name === args.template);
-      
+      const template = templates.find((t) => t.template.name === args.template);
+
       if (!template) {
         throw new Error(`Template '${args.template}' not found`);
       }
-      
+
       return template;
     }
 
@@ -319,9 +337,8 @@ export class WrapScriptTool extends BaseTool {
 
     // Fallback to basic TypeScript template for unknown languages
     const templates = await this.templateSelector.getAvailableTemplates();
-    const fallbackTemplate = templates.find(t => 
-      t.template.name.includes('typescript') && 
-      t.template.name.includes('basic')
+    const fallbackTemplate = templates.find(
+      (t) => t.template.name.includes('typescript') && t.template.name.includes('basic'),
     );
 
     return fallbackTemplate || templates[0] || null;
@@ -344,7 +361,7 @@ export class WrapScriptTool extends BaseTool {
   private async copyScriptToOutput(
     scriptPath: string,
     outputPath: string,
-    language: TemplateLanguage | null
+    language: TemplateLanguage | null,
   ): Promise<void> {
     // Determine target filename based on language
     const originalFilename = basename(scriptPath);
@@ -385,10 +402,10 @@ export class WrapScriptTool extends BaseTool {
   private prepareTemplateVariables(
     args: WrapScriptArgs,
     template: any,
-    scriptAnalysis: any
+    scriptAnalysis: any,
   ): Record<string, unknown> {
     const originalFilename = basename(args.scriptPath);
-    
+
     const variables: Record<string, unknown> = {
       serverName: args.name,
       serverDescription: args.description || `Wrapped script: ${originalFilename}`,
@@ -430,7 +447,7 @@ export class WrapScriptTool extends BaseTool {
     templateName: string,
     outputPath: string,
     result: any,
-    scriptAnalysis: any
+    scriptAnalysis: any,
   ): string {
     let message = `🎉 Successfully wrapped script as MCP server: ${name}\n\n`;
     message += `📋 Details:\n`;
@@ -439,11 +456,11 @@ export class WrapScriptTool extends BaseTool {
     message += `- Template: ${templateName}\n`;
     message += `- Output: ${outputPath}\n`;
     message += `- Files generated: ${result.generatedFiles?.length || 0}\n`;
-    
+
     if (result.buildCommand) {
       message += `- Build command: ${result.buildCommand}\n`;
     }
-    
+
     if (result.devCommand) {
       message += `- Dev command: ${result.devCommand}\n`;
     }
@@ -457,11 +474,11 @@ export class WrapScriptTool extends BaseTool {
 
     message += `\n🚀 Next steps:\n`;
     message += `1. Navigate to: cd ${outputPath}\n`;
-    
+
     if (result.buildCommand) {
       message += `2. Build: ${result.buildCommand}\n`;
     }
-    
+
     if (result.devCommand) {
       message += `3. Start development: ${result.devCommand}\n`;
     }

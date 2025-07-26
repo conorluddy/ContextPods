@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 // import { z } from 'zod'; // Will be used later for validation
-import type { CLIConfig, ProjectConfig} from '../types/cli-types.js';
+import type { CLIConfig, ProjectConfig } from '../types/cli-types.js';
 import { CLIConfigSchema, ProjectConfigSchema } from '../types/cli-types.js';
 
 /**
@@ -58,14 +58,14 @@ export class ConfigManager {
     try {
       const configPath = CONFIG_PATHS.global;
       const configDir = path.dirname(configPath);
-      
+
       // Ensure config directory exists
       await fs.mkdir(configDir, { recursive: true });
-      
+
       // Try to read existing config
       const configContent = await fs.readFile(configPath, 'utf-8');
       const rawConfig = JSON.parse(configContent);
-      
+
       // Validate and parse config
       this.globalConfig = CLIConfigSchema.parse(rawConfig);
       return this.globalConfig;
@@ -76,7 +76,7 @@ export class ConfigManager {
         await this.saveGlobalConfig(this.globalConfig);
         return this.globalConfig;
       }
-      
+
       // Invalid config, use default and warn
       console.warn('Invalid global configuration, using defaults');
       this.globalConfig = { ...DEFAULT_CLI_CONFIG };
@@ -90,13 +90,13 @@ export class ConfigManager {
   async saveGlobalConfig(config: CLIConfig): Promise<void> {
     const configPath = CONFIG_PATHS.global;
     const configDir = path.dirname(configPath);
-    
+
     // Ensure config directory exists
     await fs.mkdir(configDir, { recursive: true });
-    
+
     // Validate config before saving
     const validatedConfig = CLIConfigSchema.parse(config);
-    
+
     // Save config
     await fs.writeFile(configPath, JSON.stringify(validatedConfig, null, 2));
     this.globalConfig = validatedConfig;
@@ -114,7 +114,7 @@ export class ConfigManager {
       const configPath = CONFIG_PATHS.project;
       const configContent = await fs.readFile(configPath, 'utf-8');
       const rawConfig = JSON.parse(configContent);
-      
+
       // Validate and parse config
       this.projectConfig = ProjectConfigSchema.parse(rawConfig);
       return this.projectConfig;
@@ -123,7 +123,7 @@ export class ConfigManager {
         // No project config found
         return undefined;
       }
-      
+
       // Invalid config, warn and return undefined
       console.warn('Invalid project configuration, ignoring');
       return undefined;
@@ -135,10 +135,10 @@ export class ConfigManager {
    */
   async saveProjectConfig(config: ProjectConfig): Promise<void> {
     const configPath = CONFIG_PATHS.project;
-    
+
     // Validate config before saving
     const validatedConfig = ProjectConfigSchema.parse(config);
-    
+
     // Save config
     await fs.writeFile(configPath, JSON.stringify(validatedConfig, null, 2));
     this.projectConfig = validatedConfig;
