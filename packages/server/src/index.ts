@@ -50,7 +50,7 @@ const server = new Server(
 /**
  * List available tools
  */
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+server.setRequestHandler(ListToolsRequestSchema, () => {
   return {
     tools: [
       {
@@ -234,7 +234,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 /**
  * List available resources
  */
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
+server.setRequestHandler(ListResourcesRequestSchema, () => {
   return {
     resources: [
       {
@@ -307,7 +307,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 /**
  * Handle MCPs resource
  */
-async function handleMCPsResource() {
+async function handleMCPsResource(): Promise<object> {
   const registry = await getRegistryOperations();
   const servers = await registry.listServers();
 
@@ -345,7 +345,7 @@ async function handleMCPsResource() {
 /**
  * Handle templates resource
  */
-async function handleTemplatesResource() {
+async function handleTemplatesResource(): Promise<object> {
   const { TemplateSelector } = await import('@context-pods/core');
   const selector = new TemplateSelector(CONFIG.templatesPath);
   const templates = await selector.getAvailableTemplates();
@@ -377,7 +377,7 @@ async function handleTemplatesResource() {
 /**
  * Handle status resource
  */
-async function handleStatusResource() {
+async function handleStatusResource(): Promise<object> {
   const registry = await getRegistryOperations();
   const stats = await registry.getStatistics();
 
@@ -416,7 +416,7 @@ async function handleStatusResource() {
 /**
  * Handle statistics resource
  */
-async function handleStatisticsResource() {
+async function handleStatisticsResource(): Promise<object> {
   const registry = await getRegistryOperations();
   const stats = await registry.getStatistics();
 
@@ -437,7 +437,7 @@ async function handleStatisticsResource() {
 /**
  * Start the server
  */
-async function main() {
+async function main(): Promise<void> {
   try {
     // Initialize registry
     logger.info('Initializing Context-Pods registry...');
@@ -463,12 +463,12 @@ async function main() {
 /**
  * Handle graceful shutdown
  */
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   logger.info('Shutting down Context-Pods server...');
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on('SIGTERM', () => {
   logger.info('Shutting down Context-Pods server...');
   process.exit(0);
 });

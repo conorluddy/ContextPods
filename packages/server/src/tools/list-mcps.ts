@@ -8,6 +8,7 @@ import {
   MCPServerStatus,
   type MCPServerFilters,
   type MCPServerMetadata,
+  type RegistryOperations,
 } from '../registry/index.js';
 
 /**
@@ -33,49 +34,49 @@ export class ListMCPsTool extends BaseTool {
   /**
    * Validate list-mcps arguments
    */
-  protected async validateArguments(args: unknown): Promise<string | null> {
+  protected validateArguments(args: unknown): Promise<string | null> {
     const typedArgs = args as ListMCPsArgs;
 
     // Validate optional arguments
     if (typedArgs.filter !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'filter', false);
-      if (error) return error;
+      if (error) return Promise.resolve(error);
     }
 
     if (typedArgs.status !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'status', false);
-      if (error) return error;
+      if (error) return Promise.resolve(error);
 
       // Validate status value
       const validStatuses = Object.values(MCPServerStatus);
       if (!validStatuses.includes(typedArgs.status as MCPServerStatus)) {
-        return `Invalid status. Valid values: ${validStatuses.join(', ')}`;
+        return Promise.resolve(`Invalid status. Valid values: ${validStatuses.join(', ')}`);
       }
     }
 
     if (typedArgs.template !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'template', false);
-      if (error) return error;
+      if (error) return Promise.resolve(error);
     }
 
     if (typedArgs.language !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'language', false);
-      if (error) return error;
+      if (error) return Promise.resolve(error);
     }
 
     if (typedArgs.search !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'search', false);
-      if (error) return error;
+      if (error) return Promise.resolve(error);
     }
 
     if (typedArgs.format !== undefined) {
       const validFormats = ['table', 'json', 'summary'];
       if (!validFormats.includes(typedArgs.format)) {
-        return `Invalid format. Valid values: ${validFormats.join(', ')}`;
+        return Promise.resolve(`Invalid format. Valid values: ${validFormats.join(', ')}`);
       }
     }
 
-    return null;
+    return Promise.resolve(null);
   }
 
   /**
@@ -244,7 +245,7 @@ export class ListMCPsTool extends BaseTool {
   /**
    * Format servers as summary
    */
-  private async formatAsSummary(servers: any[], registry: any): Promise<string> {
+  private async formatAsSummary(servers: MCPServerMetadata[], registry: RegistryOperations): Promise<string> {
     const stats = await registry.getStatistics();
 
     let output = `📊 MCP Servers Summary\n\n`;
