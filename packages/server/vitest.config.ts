@@ -6,7 +6,7 @@ export default defineConfig({
     dir: './',
     globals: true,
     environment: 'node',
-    exclude: ['**/node_modules/**', '**/dist/**', 'tests/e2e/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**'],
     testTimeout: 60000,
     hookTimeout: 30000,
     coverage: {
