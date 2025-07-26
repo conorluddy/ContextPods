@@ -1,6 +1,31 @@
 # Run lint-staged for staged files
 npx lint-staged
 
+# Check for generated files in test directories
+echo "Checking for generated files in test directories..."
+GENERATED_TEST_FILES=$(find . -path "*/node_modules" -prune -o \
+  -path "*/tests/*.js" -type f -print -o \
+  -path "*/tests/*.d.ts" -type f -print -o \
+  -path "*/tests/*.js.map" -type f -print -o \
+  -path "*/tests/*.d.ts.map" -type f -print -o \
+  -path "*/test/*.js" -type f -print -o \
+  -path "*/test/*.d.ts" -type f -print -o \
+  -path "*/test/*.js.map" -type f -print -o \
+  -path "*/test/*.d.ts.map" -type f -print | grep -v node_modules || true)
+
+if [ ! -z "$GENERATED_TEST_FILES" ]; then
+  echo "❌ ERROR: Generated files found in test directories:"
+  echo "$GENERATED_TEST_FILES"
+  echo ""
+  echo "These files should not be committed. Please remove them and ensure:"
+  echo "1. Test directories have proper .gitignore files"
+  echo "2. TypeScript is not compiling test files"
+  echo ""
+  echo "To fix, run:"
+  echo "  find . -path '*/node_modules' -prune -o \\( -path '*/tests/*.js' -o -path '*/tests/*.d.ts' -o -path '*/tests/*.map' -o -path '*/test/*.js' -o -path '*/test/*.d.ts' -o -path '*/test/*.map' \\) -type f -exec rm {} +"
+  exit 1
+fi
+
 # Run full build and test suite
 echo "Running build..."
 npm run build

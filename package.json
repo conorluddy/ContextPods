@@ -19,7 +19,8 @@
     "mcp:start": "./scripts/start-server.sh",
     "mcp:dev": "./scripts/dev-server.sh",
     "mcp:test": "./scripts/test-connection.mjs",
-    "mcp:status": "./scripts/status.sh"
+    "mcp:status": "./scripts/status.sh",
+    "clean:test-artifacts": "./scripts/clean-test-artifacts.sh"
   },
   "keywords": [
     "mcp",
