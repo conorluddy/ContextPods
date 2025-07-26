@@ -115,7 +115,7 @@ export class OutputFormatter {
    * Format a list of items
    */
   list(items: string[], bullet = '•'): void {
-    items.forEach(item => {
+    items.forEach((item) => {
       console.log(chalk.gray(bullet), item);
     });
   }
@@ -124,8 +124,8 @@ export class OutputFormatter {
    * Format a table-like structure
    */
   table(rows: Array<{ label: string; value: string; color?: string }>): void {
-    const maxLabelLength = Math.max(...rows.map(row => row.label.length));
-    
+    const maxLabelLength = Math.max(...rows.map((row) => row.label.length));
+
     rows.forEach(({ label, value, color = 'white' }) => {
       const paddedLabel = label.padEnd(maxLabelLength);
       const coloredValue = (chalk as any)[color](value);
@@ -139,7 +139,7 @@ export class OutputFormatter {
   code(code: string, language?: string): void {
     const lines = code.split('\n');
     console.log(chalk.gray('```' + (language || '')));
-    lines.forEach(line => {
+    lines.forEach((line) => {
       console.log(chalk.gray('│'), line);
     });
     console.log(chalk.gray('```'));

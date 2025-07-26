@@ -44,10 +44,11 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.node-version == '24.x'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: false
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     runs-on: ubuntu-latest

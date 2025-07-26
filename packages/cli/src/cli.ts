@@ -18,12 +18,12 @@ import { testCommand } from './commands/test.js';
 import { listCommand } from './commands/list.js';
 import { templatesCommand } from './commands/templates.js';
 import { initCommand } from './commands/init.js';
-import { 
-  startServerCommand, 
-  stopServerCommand, 
-  statusServerCommand, 
-  testServerCommand, 
-  devServerCommand 
+import {
+  startServerCommand,
+  stopServerCommand,
+  statusServerCommand,
+  testServerCommand,
+  devServerCommand,
 } from './commands/server.js';
 
 /**
@@ -42,7 +42,7 @@ export function createProgram(): Command {
       // Set up global verbose mode
       const options = thisCommand.opts();
       output.setVerbose(options.verbose || false);
-      
+
       if (options.verbose) {
         output.debug('Verbose mode enabled');
       }
@@ -148,9 +148,7 @@ export function createProgram(): Command {
     });
 
   // Cache command - Manage cache
-  const cacheCommand = program
-    .command('cache')
-    .description('Manage CLI cache');
+  const cacheCommand = program.command('cache').description('Manage CLI cache');
 
   cacheCommand
     .command('clear [namespace]')
@@ -158,7 +156,7 @@ export function createProgram(): Command {
     .action(async (namespace, _options, command) => {
       const context = await createCommandContext(command.parent?.parent as Command);
       const cacheManager = new CacheManager(context.config);
-      
+
       if (namespace) {
         await cacheManager.clearNamespace(namespace);
         output.success(`Cleared cache namespace: ${namespace}`);
@@ -174,7 +172,7 @@ export function createProgram(): Command {
       const context = await createCommandContext(command.parent?.parent as Command);
       const cacheManager = new CacheManager(context.config);
       const stats = await cacheManager.getStats();
-      
+
       output.table([
         { label: 'Entries', value: stats.entries.toString() },
         { label: 'Total Size', value: `${Math.round(stats.totalSize / 1024)} KB` },
@@ -190,14 +188,12 @@ export function createProgram(): Command {
       const context = await createCommandContext(command.parent?.parent as Command);
       const cacheManager = new CacheManager(context.config);
       const cleaned = await cacheManager.cleanExpired();
-      
+
       output.success(`Cleaned ${cleaned} expired cache entries`);
     });
 
   // Server command - Manage Meta-MCP Server
-  const serverCommand = program
-    .command('server')
-    .description('Manage the Meta-MCP Server');
+  const serverCommand = program.command('server').description('Manage the Meta-MCP Server');
 
   serverCommand
     .command('start')
@@ -243,19 +239,17 @@ export function createProgram(): Command {
     });
 
   // Config command - Manage configuration
-  const configCommand = program
-    .command('config')
-    .description('Manage CLI configuration');
+  const configCommand = program.command('config').description('Manage CLI configuration');
 
   configCommand
     .command('show')
     .description('Show current configuration')
     .action(async (_options, _command) => {
       const { global, project } = await configManager.getConfig();
-      
+
       output.info('Global Configuration:');
       console.log(JSON.stringify(global, null, 2));
-      
+
       if (project) {
         output.info('\nProject Configuration:');
         console.log(JSON.stringify(project, null, 2));
@@ -281,13 +275,11 @@ export function createProgram(): Command {
 async function createCommandContext(command: Command): Promise<CommandContext> {
   const options = command.opts();
   const { global, project } = await configManager.getConfig();
-  
+
   const workingDir = process.cwd();
-  const templatePaths = [
-    global.templatesPath,
-    './templates',
-    '../templates',
-  ].map(p => p.startsWith('/') ? p : `${workingDir}/${p}`);
+  const templatePaths = [global.templatesPath, './templates', '../templates'].map((p) =>
+    p.startsWith('/') ? p : `${workingDir}/${p}`,
+  );
 
   const outputPath = options.output || project?.output.directory || global.outputPath;
 

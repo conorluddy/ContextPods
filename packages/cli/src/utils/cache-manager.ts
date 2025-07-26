@@ -56,13 +56,11 @@ export class CacheManager {
   async init(): Promise<void> {
     try {
       await fs.mkdir(this.cacheDir, { recursive: true });
-      
+
       // Create subdirectories for different cache types
       const subDirs = ['templates', 'builds', 'analysis', 'dependencies'];
       await Promise.all(
-        subDirs.map(dir => 
-          fs.mkdir(path.join(this.cacheDir, dir), { recursive: true })
-        )
+        subDirs.map((dir) => fs.mkdir(path.join(this.cacheDir, dir), { recursive: true })),
       );
     } catch (error) {
       output.warn(`Failed to initialize cache directory: ${(error as Error).message}`);
@@ -74,13 +72,13 @@ export class CacheManager {
    */
   private generateKey(namespace: string, identifier: string, data?: any): string {
     let keyData = `${namespace}:${identifier}`;
-    
+
     if (data) {
       const dataString = JSON.stringify(data);
       const hash = crypto.createHash('md5').update(dataString).digest('hex');
       keyData += `:${hash}`;
     }
-    
+
     return crypto.createHash('sha256').update(keyData).digest('hex');
   }
 
@@ -102,11 +100,11 @@ export class CacheManager {
       ttl?: number;
       version?: string;
       keyData?: any;
-    } = {}
+    } = {},
   ): Promise<void> {
     const { ttl, version, keyData } = options;
     const key = this.generateKey(namespace, identifier, keyData);
-    
+
     const entry: CacheEntry<T> = {
       key,
       data,
@@ -119,7 +117,7 @@ export class CacheManager {
       await this.init();
       const filePath = this.getCacheFilePath(namespace, key);
       await fs.writeFile(filePath, JSON.stringify(entry, null, 2));
-      
+
       output.debug(`Cached entry: ${namespace}/${identifier}`);
     } catch (error) {
       output.debug(`Failed to cache entry: ${(error as Error).message}`);
@@ -135,30 +133,30 @@ export class CacheManager {
     options: {
       version?: string;
       keyData?: any;
-    } = {}
+    } = {},
   ): Promise<T | null> {
     const { version, keyData } = options;
     const key = this.generateKey(namespace, identifier, keyData);
-    
+
     try {
       const filePath = this.getCacheFilePath(namespace, key);
       const content = await fs.readFile(filePath, 'utf-8');
       const entry: CacheEntry<T> = JSON.parse(content);
-      
+
       // Check TTL
-      if (entry.ttl && (Date.now() - entry.timestamp) > entry.ttl) {
+      if (entry.ttl && Date.now() - entry.timestamp > entry.ttl) {
         output.debug(`Cache entry expired: ${namespace}/${identifier}`);
         await this.delete(namespace, identifier, { keyData });
         return null;
       }
-      
+
       // Check version
       if (version && entry.version !== version) {
         output.debug(`Cache entry version mismatch: ${namespace}/${identifier}`);
         await this.delete(namespace, identifier, { keyData });
         return null;
       }
-      
+
       output.debug(`Cache hit: ${namespace}/${identifier}`);
       return entry.data;
     } catch (error) {
@@ -177,11 +175,11 @@ export class CacheManager {
     identifier: string,
     options: {
       keyData?: any;
-    } = {}
+    } = {},
   ): Promise<void> {
     const { keyData } = options;
     const key = this.generateKey(namespace, identifier, keyData);
-    
+
     try {
       const filePath = this.getCacheFilePath(namespace, key);
       await fs.unlink(filePath);
@@ -200,13 +198,9 @@ export class CacheManager {
     try {
       const namespacePath = path.join(this.cacheDir, namespace);
       const entries = await fs.readdir(namespacePath);
-      
-      await Promise.all(
-        entries.map(entry => 
-          fs.unlink(path.join(namespacePath, entry))
-        )
-      );
-      
+
+      await Promise.all(entries.map((entry) => fs.unlink(path.join(namespacePath, entry))));
+
       output.debug(`Cleared cache namespace: ${namespace}`);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -221,20 +215,20 @@ export class CacheManager {
   async clearAll(): Promise<void> {
     try {
       const entries = await fs.readdir(this.cacheDir);
-      
+
       await Promise.all(
-        entries.map(async entry => {
+        entries.map(async (entry) => {
           const entryPath = path.join(this.cacheDir, entry);
           const stat = await fs.stat(entryPath);
-          
+
           if (stat.isDirectory()) {
             await this.clearNamespace(entry);
           } else {
             await fs.unlink(entryPath);
           }
-        })
+        }),
       );
-      
+
       output.success('Cache cleared successfully');
     } catch (error) {
       output.error(`Failed to clear cache: ${(error as Error).message}`);
@@ -254,26 +248,26 @@ export class CacheManager {
 
     try {
       const namespaces = await fs.readdir(this.cacheDir);
-      
+
       for (const namespace of namespaces) {
         const namespacePath = path.join(this.cacheDir, namespace);
         const namespaceStat = await fs.stat(namespacePath);
-        
+
         if (namespaceStat.isDirectory()) {
           const entries = await fs.readdir(namespacePath);
-          
+
           for (const entry of entries) {
             if (entry.endsWith('.json')) {
               const entryPath = path.join(namespacePath, entry);
               const entryStat = await fs.stat(entryPath);
-              
+
               stats.entries++;
               stats.totalSize += entryStat.size;
-              
+
               if (entryStat.mtime.getTime() < stats.oldestEntry) {
                 stats.oldestEntry = entryStat.mtime.getTime();
               }
-              
+
               if (entryStat.mtime.getTime() > stats.newestEntry) {
                 stats.newestEntry = entryStat.mtime.getTime();
               }
@@ -296,23 +290,23 @@ export class CacheManager {
 
     try {
       const namespaces = await fs.readdir(this.cacheDir);
-      
+
       for (const namespace of namespaces) {
         const namespacePath = path.join(this.cacheDir, namespace);
         const namespaceStat = await fs.stat(namespacePath);
-        
+
         if (namespaceStat.isDirectory()) {
           const entries = await fs.readdir(namespacePath);
-          
+
           for (const entryFile of entries) {
             if (entryFile.endsWith('.json')) {
               const entryPath = path.join(namespacePath, entryFile);
-              
+
               try {
                 const content = await fs.readFile(entryPath, 'utf-8');
                 const entry: CacheEntry = JSON.parse(content);
-                
-                if (entry.ttl && (Date.now() - entry.timestamp) > entry.ttl) {
+
+                if (entry.ttl && Date.now() - entry.timestamp > entry.ttl) {
                   await fs.unlink(entryPath);
                   cleanedCount++;
                 }
