@@ -19,7 +19,8 @@
     "mcp:start": "./scripts/start-server.sh",
     "mcp:dev": "./scripts/dev-server.sh",
     "mcp:test": "./scripts/test-connection.mjs",
-    "mcp:status": "./scripts/status.sh"
+    "mcp:status": "./scripts/status.sh",
+    "clean:test-artifacts": "./scripts/clean-test-artifacts.sh"
   },
   "keywords": [
     "mcp",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/sqlite3": "^3.1.11",
+    "@types/tmp": "^0.2.6",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "@vitest/coverage-v8": "^1.6.1",
