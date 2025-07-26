@@ -9,6 +9,7 @@ export default mergeConfig(
       dir: './',
       globals: true,
       environment: 'node',
+      setupFiles: ['../../tests/setup.ts'],
     },
   }),
 );
