@@ -1,7 +1,18 @@
 {
-  "extends": ["../../.eslintrc.json"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
   "parserOptions": {
-    "project": "./tsconfig.eslint.json"
+    "ecmaVersion": 2022,
+    "sourceType": "module"
   },
-  "ignorePatterns": ["dist/**/*", "*.config.*", "**/*.d.ts", "**/*.js", "**/*.map"]
+  "ignorePatterns": ["dist/**/*", "*.config.*", "**/*.d.ts", "**/*.js", "**/*.map"],
+  "rules": {
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
+    "@typescript-eslint/require-await": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  }
 }

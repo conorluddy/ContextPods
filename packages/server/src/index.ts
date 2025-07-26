@@ -1,6 +1,6 @@
 /**
  * Context-Pods Core MCP Server
- * 
+ *
  * This server manages other MCP servers in the Context-Pods toolkit.
  * It provides tools for creating, managing, and distributing MCP servers.
  */
@@ -15,12 +15,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@context-pods/core';
 import { CONFIG } from './config/index.js';
-import {
-  CreateMCPTool,
-  WrapScriptTool,
-  ListMCPsTool,
-  ValidateMCPTool,
-} from './tools/index.js';
+import { CreateMCPTool, WrapScriptTool, ListMCPsTool, ValidateMCPTool } from './tools/index.js';
 import { getRegistryOperations } from './registry/index.js';
 
 /**
@@ -50,7 +45,7 @@ const server = new Server(
 /**
  * List available tools
  */
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+server.setRequestHandler(ListToolsRequestSchema, () => {
   return {
     tools: [
       {
@@ -234,7 +229,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 /**
  * List available resources
  */
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
+server.setRequestHandler(ListResourcesRequestSchema, () => {
   return {
     resources: [
       {
@@ -295,9 +290,13 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         {
           uri,
           mimeType: 'application/json',
-          text: JSON.stringify({
-            error: `Failed to load resource: ${error instanceof Error ? error.message : String(error)}`,
-          }, null, 2),
+          text: JSON.stringify(
+            {
+              error: `Failed to load resource: ${error instanceof Error ? error.message : String(error)}`,
+            },
+            null,
+            2,
+          ),
         },
       ],
     };
@@ -307,7 +306,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 /**
  * Handle MCPs resource
  */
-async function handleMCPsResource() {
+async function handleMCPsResource(): Promise<object> {
   const registry = await getRegistryOperations();
   const servers = await registry.listServers();
 
@@ -316,27 +315,31 @@ async function handleMCPsResource() {
       {
         uri: 'context-pods://mcps/',
         mimeType: 'application/json',
-        text: JSON.stringify({
-          servers: servers.map(server => ({
-            id: server.id,
-            name: server.name,
-            status: server.status,
-            template: server.template,
-            path: server.path,
-            language: server.metadata.language,
-            description: server.metadata.description,
-            tags: server.metadata.tags,
-            turboOptimized: server.metadata.turboOptimized,
-            buildCommand: server.metadata.buildCommand,
-            devCommand: server.metadata.devCommand,
-            lastBuildStatus: server.metadata.lastBuildStatus,
-            lastBuildTime: server.metadata.lastBuildTime,
-            createdAt: server.createdAt,
-            updatedAt: server.updatedAt,
-          })),
-          count: servers.length,
-          lastUpdated: Date.now(),
-        }, null, 2),
+        text: JSON.stringify(
+          {
+            servers: servers.map((server) => ({
+              id: server.id,
+              name: server.name,
+              status: server.status,
+              template: server.template,
+              path: server.path,
+              language: server.metadata.language,
+              description: server.metadata.description,
+              tags: server.metadata.tags,
+              turboOptimized: server.metadata.turboOptimized,
+              buildCommand: server.metadata.buildCommand,
+              devCommand: server.metadata.devCommand,
+              lastBuildStatus: server.metadata.lastBuildStatus,
+              lastBuildTime: server.metadata.lastBuildTime,
+              createdAt: server.createdAt,
+              updatedAt: server.updatedAt,
+            })),
+            count: servers.length,
+            lastUpdated: Date.now(),
+          },
+          null,
+          2,
+        ),
       },
     ],
   };
@@ -345,7 +348,7 @@ async function handleMCPsResource() {
 /**
  * Handle templates resource
  */
-async function handleTemplatesResource() {
+async function handleTemplatesResource(): Promise<object> {
   const { TemplateSelector } = await import('@context-pods/core');
   const selector = new TemplateSelector(CONFIG.templatesPath);
   const templates = await selector.getAvailableTemplates();
@@ -355,20 +358,24 @@ async function handleTemplatesResource() {
       {
         uri: 'context-pods://templates/',
         mimeType: 'application/json',
-        text: JSON.stringify({
-          templates: templates.map(t => ({
-            name: t.template.name,
-            language: t.template.language,
-            description: t.template.description,
-            tags: t.template.tags,
-            optimization: t.template.optimization,
-            variables: Object.keys(t.template.variables || {}),
-            path: t.templatePath,
-          })),
-          count: templates.length,
-          templatesPath: CONFIG.templatesPath,
-          lastUpdated: Date.now(),
-        }, null, 2),
+        text: JSON.stringify(
+          {
+            templates: templates.map((t) => ({
+              name: t.template.name,
+              language: t.template.language,
+              description: t.template.description,
+              tags: t.template.tags,
+              optimization: t.template.optimization,
+              variables: Object.keys(t.template.variables || {}),
+              path: t.templatePath,
+            })),
+            count: templates.length,
+            templatesPath: CONFIG.templatesPath,
+            lastUpdated: Date.now(),
+          },
+          null,
+          2,
+        ),
       },
     ],
   };
@@ -377,7 +384,7 @@ async function handleTemplatesResource() {
 /**
  * Handle status resource
  */
-async function handleStatusResource() {
+async function handleStatusResource(): Promise<object> {
   const registry = await getRegistryOperations();
   const stats = await registry.getStatistics();
 
@@ -386,28 +393,32 @@ async function handleStatusResource() {
       {
         uri: 'context-pods://status',
         mimeType: 'application/json',
-        text: JSON.stringify({
-          version: CONFIG.server.version,
-          name: CONFIG.server.name,
-          status: 'ready',
-          configuration: {
-            templatesPath: CONFIG.templatesPath,
-            registryPath: CONFIG.registryPath,
-            outputMode: CONFIG.outputMode,
-            generatedPackagesPath: CONFIG.generatedPackagesPath,
+        text: JSON.stringify(
+          {
+            version: CONFIG.server.version,
+            name: CONFIG.server.name,
+            status: 'ready',
+            configuration: {
+              templatesPath: CONFIG.templatesPath,
+              registryPath: CONFIG.registryPath,
+              outputMode: CONFIG.outputMode,
+              generatedPackagesPath: CONFIG.generatedPackagesPath,
+            },
+            capabilities: {
+              turboRepo: true,
+              templateSelection: true,
+              languageDetection: true,
+              scriptWrapping: true,
+              serverValidation: true,
+            },
+            supportedLanguages: ['typescript', 'javascript', 'python', 'rust', 'shell'],
+            serverCounts: stats.byStatus,
+            uptime: process.uptime(),
+            lastUpdated: Date.now(),
           },
-          capabilities: {
-            turboRepo: true,
-            templateSelection: true,
-            languageDetection: true,
-            scriptWrapping: true,
-            serverValidation: true,
-          },
-          supportedLanguages: ['typescript', 'javascript', 'python', 'rust', 'shell'],
-          serverCounts: stats.byStatus,
-          uptime: process.uptime(),
-          lastUpdated: Date.now(),
-        }, null, 2),
+          null,
+          2,
+        ),
       },
     ],
   };
@@ -416,7 +427,7 @@ async function handleStatusResource() {
 /**
  * Handle statistics resource
  */
-async function handleStatisticsResource() {
+async function handleStatisticsResource(): Promise<object> {
   const registry = await getRegistryOperations();
   const stats = await registry.getStatistics();
 
@@ -425,10 +436,14 @@ async function handleStatisticsResource() {
       {
         uri: 'context-pods://statistics',
         mimeType: 'application/json',
-        text: JSON.stringify({
-          ...stats,
-          lastUpdated: Date.now(),
-        }, null, 2),
+        text: JSON.stringify(
+          {
+            ...stats,
+            lastUpdated: Date.now(),
+          },
+          null,
+          2,
+        ),
       },
     ],
   };
@@ -437,7 +452,7 @@ async function handleStatisticsResource() {
 /**
  * Start the server
  */
-async function main() {
+async function main(): Promise<void> {
   try {
     // Initialize registry
     logger.info('Initializing Context-Pods registry...');
@@ -446,14 +461,13 @@ async function main() {
     // Start server
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    
+
     logger.info('Context-Pods MCP server started successfully', {
       version: CONFIG.server.version,
       templatesPath: CONFIG.templatesPath,
       registryPath: CONFIG.registryPath,
       outputMode: CONFIG.outputMode,
     });
-
   } catch (error) {
     logger.error('Failed to start Context-Pods server:', error);
     process.exit(1);
@@ -463,12 +477,12 @@ async function main() {
 /**
  * Handle graceful shutdown
  */
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   logger.info('Shutting down Context-Pods server...');
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on('SIGTERM', () => {
   logger.info('Shutting down Context-Pods server...');
   process.exit(0);
 });
