@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run --reporter=verbose --passWithNoTests",
+    "test": "vitest run --reporter=verbose --passWithNoTests --exclude tests/e2e/**",
     "test:coverage": "vitest run --reporter=verbose --passWithNoTests --coverage",
     "lint": "eslint 'src/**/*.ts'",
     "type-check": "tsc --noEmit",
