@@ -67,13 +67,19 @@ export class TemplateSelector {
     const templates: TemplateSelectionResult[] = [];
 
     try {
+      logger.info(`Scanning templates directory: ${this.templatesPath}`);
       const templateDirs = await fs.readdir(this.templatesPath, { withFileTypes: true });
+      logger.info(`Found ${templateDirs.length} items in templates directory`);
 
       for (const dir of templateDirs) {
-        if (!dir.isDirectory()) continue;
+        if (!dir.isDirectory()) {
+          logger.debug(`Skipping non-directory item: ${dir.name}`);
+          continue;
+        }
 
         const templatePath = join(this.templatesPath, dir.name);
         const metadataPath = join(templatePath, 'template.json');
+        logger.debug(`Processing template directory: ${dir.name}`);
 
         try {
           const metadataContent = await fs.readFile(metadataPath, 'utf8');
@@ -87,14 +93,29 @@ export class TemplateSelector {
             score: 0,
             reasons: [],
           });
+          logger.debug(`Successfully loaded template: ${metadata.name}`);
         } catch (error) {
           logger.warn(`Failed to load template metadata: ${metadataPath}`, error);
         }
       }
     } catch (error) {
-      logger.error('Failed to scan templates directory:', error);
+      logger.error(`Failed to scan templates directory: ${this.templatesPath}`, error);
+      logger.error(
+        'This usually indicates a path resolution issue. Check that the templates directory exists.',
+      );
+
+      // Provide helpful debugging information
+      const fs = await import('fs');
+      if (!fs.existsSync(this.templatesPath)) {
+        logger.error(`Templates directory does not exist: ${this.templatesPath}`);
+        logger.error('Possible solutions:');
+        logger.error('1. Set CONTEXT_PODS_TEMPLATES_PATH environment variable');
+        logger.error('2. Ensure you are running from the correct directory');
+        logger.error('3. Check that the project build completed successfully');
+      }
     }
 
+    logger.info(`Loaded ${templates.length} templates successfully`);
     return templates;
   }
 

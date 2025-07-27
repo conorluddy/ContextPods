@@ -40,8 +40,8 @@ echo "🔨 Building packages..."
 npm run build
 
 # Check if server package was built
-if [ ! -f "packages/server/dist/index.js" ]; then
-    echo "❌ Server build failed. dist/index.js not found."
+if [ ! -f "packages/server/dist/src/index.js" ]; then
+    echo "❌ Server build failed. dist/src/index.js not found."
     exit 1
 fi
 
@@ -53,4 +53,4 @@ echo "📖 See docs/MCP_CLIENT_SETUP.md for configuration instructions."
 echo ""
 
 # Start the server (this will run indefinitely)
-node packages/server/dist/index.js
+node packages/server/dist/src/index.js
