@@ -55,9 +55,9 @@ describe('TemplateEngine - Variable Validation', () => {
     });
     expect(invalidResult.isValid).toBe(false);
     expect(invalidResult.errors).toHaveLength(1);
-    expect(invalidResult.errors[0].message).toContain('invalid');
+    expect(invalidResult.errors[0].message).toContain('Invalid values: invalid');
     expect(invalidResult.errors[0].message).toContain(
-      'must be one of: file, data, utility, network, system',
+      'Allowed values: file, data, utility, network, system',
     );
   });
 
@@ -100,8 +100,10 @@ describe('TemplateEngine - Variable Validation', () => {
     });
     expect(invalidResult.isValid).toBe(false);
     expect(invalidResult.errors).toHaveLength(1);
-    expect(invalidResult.errors[0].message).toBe(
-      "Variable 'environment' must be one of: development, staging, production",
+    expect(invalidResult.errors[0].message).toContain('has invalid value');
+    expect(invalidResult.errors[0].message).toContain('Current value: "testing"');
+    expect(invalidResult.errors[0].message).toContain(
+      'Allowed values: development, staging, production',
     );
   });
 
@@ -137,9 +139,9 @@ describe('TemplateEngine - Variable Validation', () => {
     });
     expect(stringResult.isValid).toBe(false);
     expect(stringResult.errors).toHaveLength(1);
-    expect(stringResult.errors[0].message).toBe(
-      "Variable 'toolCategories' should be of type 'array', got 'string'",
-    );
+    expect(stringResult.errors[0].message).toContain('has incorrect type');
+    expect(stringResult.errors[0].message).toContain('Expected: array');
+    expect(stringResult.errors[0].message).toContain('Received: string');
 
     // Test passing an array with wrong string format (from user issue)
     const arrayStringResult = await engine.validateVariables(metadata, {
@@ -243,7 +245,7 @@ describe('TemplateEngine - Variable Validation', () => {
     );
     expect(errors.find((e) => e.field === 'port')?.message).toContain('must be at least 1000');
     expect(errors.find((e) => e.field === 'toolCategories')?.message).toContain(
-      'invalid values: invalid, wrong',
+      'Invalid values: invalid, wrong',
     );
   });
 });

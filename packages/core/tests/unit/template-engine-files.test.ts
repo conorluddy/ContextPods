@@ -345,12 +345,11 @@ describe('TemplateEngine - File Operations', () => {
     // Action: Attempt to process template
     const result = await engine.process(metadata, context);
 
-    // Assert: Processing failed gracefully
+    // Assert: Processing failed gracefully with enhanced error message
     expect(result.success).toBe(false);
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toContain('Permission denied');
-
-    // Assert: Error message contains the base error
-    expect(result.errors[0]).toBe('Permission denied: read-only filesystem');
+    expect(result.errors[0]).toContain('Cannot write to output directory');
+    expect(result.errors[0]).toContain('/readonly/output');
+    expect(result.errors[0]).toContain('Check that you have write permissions');
   });
 });
