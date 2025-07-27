@@ -10,6 +10,8 @@ import type {
   TemplateMetadata,
   TemplateContext,
   TemplateProcessingResult,
+  TemplateValidationResult,
+  TemplateValidationError,
 } from './types.js';
 import { TemplateLanguage } from './types.js';
 
@@ -95,8 +97,8 @@ export class DefaultTemplateEngine implements TemplateEngine {
   async validateVariables(
     metadata: TemplateMetadata,
     variables: Record<string, unknown>,
-  ): Promise<boolean> {
-    const errors: string[] = [];
+  ): Promise<TemplateValidationResult> {
+    const errors: TemplateValidationError[] = [];
 
     // Ensure this is truly async
     await Promise.resolve();
@@ -106,7 +108,12 @@ export class DefaultTemplateEngine implements TemplateEngine {
 
       // Check required variables
       if (definition.required && (value === undefined || value === null)) {
-        errors.push(`Required variable '${name}' is missing`);
+        errors.push({
+          field: name,
+          message: `Required variable '${name}' is missing`,
+          currentValue: value,
+          expectedType: definition.type,
+        });
         continue;
       }
 
@@ -118,9 +125,12 @@ export class DefaultTemplateEngine implements TemplateEngine {
       // Type validation
       const actualType = Array.isArray(value) ? 'array' : typeof value;
       if (actualType !== definition.type) {
-        errors.push(
-          `Variable '${name}' should be of type '${definition.type}', got '${actualType}'`,
-        );
+        errors.push({
+          field: name,
+          message: `Variable '${name}' should be of type '${definition.type}', got '${actualType}'`,
+          currentValue: value,
+          expectedType: definition.type,
+        });
         continue;
       }
 
@@ -128,19 +138,33 @@ export class DefaultTemplateEngine implements TemplateEngine {
       if (definition.type === 'string' && definition.validation?.pattern) {
         const pattern = new RegExp(definition.validation.pattern);
         if (!pattern.test(String(value))) {
-          errors.push(
-            `Variable '${name}' does not match required pattern: ${definition.validation.pattern}`,
-          );
+          errors.push({
+            field: name,
+            message: `Variable '${name}' does not match required pattern: ${definition.validation.pattern}`,
+            currentValue: value,
+            expectedType: definition.type,
+            pattern: definition.validation.pattern,
+          });
         }
       }
 
       // Range validation for numbers
       if (definition.type === 'number' && typeof value === 'number') {
         if (definition.validation?.min !== undefined && value < definition.validation.min) {
-          errors.push(`Variable '${name}' must be at least ${definition.validation.min}`);
+          errors.push({
+            field: name,
+            message: `Variable '${name}' must be at least ${definition.validation.min}`,
+            currentValue: value,
+            expectedType: definition.type,
+          });
         }
         if (definition.validation?.max !== undefined && value > definition.validation.max) {
-          errors.push(`Variable '${name}' must be at most ${definition.validation.max}`);
+          errors.push({
+            field: name,
+            message: `Variable '${name}' must be at most ${definition.validation.max}`,
+            currentValue: value,
+            expectedType: definition.type,
+          });
         }
       }
 
@@ -149,18 +173,26 @@ export class DefaultTemplateEngine implements TemplateEngine {
         definition.validation?.options &&
         !definition.validation.options.includes(String(value))
       ) {
-        errors.push(
-          `Variable '${name}' must be one of: ${definition.validation.options.join(', ')}`,
-        );
+        errors.push({
+          field: name,
+          message: `Variable '${name}' must be one of: ${definition.validation.options.join(', ')}`,
+          currentValue: value,
+          expectedType: definition.type,
+        });
       }
     }
 
     if (errors.length > 0) {
-      logger.error('Variable validation failed:', errors);
-      return false;
+      logger.error(
+        'Variable validation failed:',
+        errors.map((e) => e.message),
+      );
     }
 
-    return true;
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
   }
 
   /**

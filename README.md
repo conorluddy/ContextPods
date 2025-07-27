@@ -184,9 +184,13 @@ Every generated pod includes:
 - **Advanced TypeScript Templates** leveraging Context-Pods utilities
 - **Template Processing Engine** with variable validation and substitution
 
-#### **Testing Infrastructure** ([#23](https://github.com/conorluddy/ContextPods/issues/23)) - **🚀 JUST COMPLETED**
+#### **Testing & Validation Framework** ([#6](https://github.com/conorluddy/ContextPods/issues/6), [#23](https://github.com/conorluddy/ContextPods/issues/23)) - **✅ COMPLETE**
 
-- **Checkpoint-Based Testing Strategy** - Incremental test coverage improvement from 0% to 90%+
+- **Comprehensive Testing Framework** - Complete `@context-pods/testing` package for MCP server validation
+- **MCP Protocol Compliance Testing** - Full validation against MCP standards using Zod schemas
+- **Script Wrapper Testing** - Multi-language script testing (TypeScript, Python, Rust, Shell)
+- **Test Harness** - Communication testing for MCP servers via stdio transport
+- **Report Generation** - HTML and JUnit XML report generators for CI/CD integration
 - **Template Engine Unit Tests** - 5 comprehensive tests for variable substitution functionality
 - **GitHub Actions CI/CD** - Automated testing with Node.js 20.x, 22.x, 24.x matrix
 - **Pre-commit Hooks** - Automated linting, type checking, building, and testing
@@ -220,15 +224,15 @@ templates/
 
 ### 🔄 **Development Roadmap**
 
-| Phase            | Status          | Focus                        | Issues                                                                                                                   |
-| ---------------- | --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Foundation**   | ✅ **COMPLETE** | TurboRepo setup, Core Pod    | [#2](https://github.com/conorluddy/ContextPods/issues/2), [#3](https://github.com/conorluddy/ContextPods/issues/3)       |
-| **Generation**   | ✅ **COMPLETE** | Template system, CLI tools   | [#4](https://github.com/conorluddy/ContextPods/issues/4) ✅, [#5](https://github.com/conorluddy/ContextPods/issues/5) ✅ |
-| **Meta-MCP**     | ✅ **COMPLETE** | MCP Server Interface         | [#22](https://github.com/conorluddy/ContextPods/issues/22) ✅                                                            |
-| **Testing**      | ✅ **COMPLETE** | Testing Infrastructure       | [#23](https://github.com/conorluddy/ContextPods/issues/23) ✅                                                            |
-| **Management**   | 🚀 **NEXT**     | Pod modification, Validation | [#6](https://github.com/conorluddy/ContextPods/issues/6), [#7](https://github.com/conorluddy/ContextPods/issues/7)       |
-| **Scale**        | 📋 **PLANNED**  | Orchestration, Deployment    | [#12](https://github.com/conorluddy/ContextPods/issues/12), [#16](https://github.com/conorluddy/ContextPods/issues/16)   |
-| **Intelligence** | 📋 **PLANNED**  | AI optimization, Polish      | [#15](https://github.com/conorluddy/ContextPods/issues/15), [#11](https://github.com/conorluddy/ContextPods/issues/11)   |
+| Phase            | Status          | Focus                          | Issues                                                                                                                     |
+| ---------------- | --------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation**   | ✅ **COMPLETE** | TurboRepo setup, Core Pod      | [#2](https://github.com/conorluddy/ContextPods/issues/2), [#3](https://github.com/conorluddy/ContextPods/issues/3)         |
+| **Generation**   | ✅ **COMPLETE** | Template system, CLI tools     | [#4](https://github.com/conorluddy/ContextPods/issues/4) ✅, [#5](https://github.com/conorluddy/ContextPods/issues/5) ✅   |
+| **Meta-MCP**     | ✅ **COMPLETE** | MCP Server Interface           | [#22](https://github.com/conorluddy/ContextPods/issues/22) ✅                                                              |
+| **Testing**      | ✅ **COMPLETE** | Testing & Validation Framework | [#6](https://github.com/conorluddy/ContextPods/issues/6) ✅, [#23](https://github.com/conorluddy/ContextPods/issues/23) ✅ |
+| **Management**   | 🚀 **NEXT**     | Pod modification, Deployment   | [#7](https://github.com/conorluddy/ContextPods/issues/7), [#12](https://github.com/conorluddy/ContextPods/issues/12)       |
+| **Scale**        | 📋 **PLANNED**  | Orchestration, Deployment      | [#12](https://github.com/conorluddy/ContextPods/issues/12), [#16](https://github.com/conorluddy/ContextPods/issues/16)     |
+| **Intelligence** | 📋 **PLANNED**  | AI optimization, Polish        | [#15](https://github.com/conorluddy/ContextPods/issues/15), [#11](https://github.com/conorluddy/ContextPods/issues/11)     |
 
 > 📋 **Track Progress**: [View all issues](https://github.com/conorluddy/ContextPods/issues) | [Active PR #18](https://github.com/conorluddy/ContextPods/pull/18)
 
@@ -243,7 +247,12 @@ packages/
 │   ├── template-selector.ts # Intelligent template selection
 │   ├── types.ts            # Enhanced metadata schemas
 │   └── schemas.ts          # Zod validation schemas
-└── server/                 # @context-pods/server (MCP server)
+├── server/                 # @context-pods/server (MCP server)
+└── testing/                # @context-pods/testing (Testing framework)
+    ├── protocol/           # MCP protocol validation
+    ├── wrappers/          # Script wrapper testing
+    ├── utils/             # Test runners and reporters
+    └── types.ts           # Testing framework types
 ```
 
 ### **Template System**
@@ -252,6 +261,15 @@ packages/
 - **TemplateSelector**: Automatic language detection and scoring
 - **Enhanced Metadata**: Optimization flags, validation rules, file definitions
 - **Multi-Language Support**: TypeScript (optimized), Python, Rust, Shell
+
+### **Testing & Validation Framework**
+
+- **MCPComplianceTestSuite**: Complete MCP protocol validation using official schemas
+- **ScriptWrapperTester**: Multi-language script wrapper testing infrastructure
+- **MCPMessageTestHarness**: Communication testing for MCP servers via stdio transport
+- **ReportGenerator**: HTML and JUnit XML report generation for CI/CD integration
+- **ParameterValidator**: Validation of script parameter passing and type conversion
+- **OutputValidator**: Validation of script outputs in various formats (JSON, CSV, XML, YAML)
 
 ### **Key Features Implemented**
 
@@ -262,7 +280,9 @@ packages/
 - ✅ **Build Caching** and hot reloading support
 - ✅ **Multi-Language Architecture** with self-contained packages
 - ✅ **Context-Pods Utilities Integration** for advanced templates
-- ✅ **Comprehensive Testing** with 5 unit tests for template engine
+- ✅ **Comprehensive Testing Framework** - Complete MCP server validation toolkit
+- ✅ **Protocol Compliance Testing** - Automated validation against MCP standards
+- ✅ **Multi-Language Script Testing** - TypeScript, Python, Rust, Shell support
 - ✅ **CI/CD Pipeline** with GitHub Actions and Node.js matrix testing
 
 ### **🎯 Key Innovations Delivered**
@@ -421,6 +441,45 @@ const result = await engine.process(template, {
   outputPath: './output',
   templatePath: './templates/typescript-advanced',
   optimization: { turboRepo: true, hotReload: true },
+});
+```
+
+### **Using the Testing Framework**
+
+```typescript
+import {
+  MCPComplianceTestSuite,
+  ScriptWrapperTester,
+  ReportGenerator,
+} from '@context-pods/testing';
+
+// Test MCP server compliance
+const complianceSuite = new MCPComplianceTestSuite('./my-mcp-server', true);
+const complianceResults = await complianceSuite.runFullSuite();
+
+// Test script wrapper functionality
+const wrapperTester = new ScriptWrapperTester({
+  scriptPath: './my-script.py',
+  language: 'python',
+  testCases: [
+    {
+      name: 'Basic Execution',
+      input: { param1: 'value1' },
+      expectedOutput: { result: 'processed_value1' },
+    },
+  ],
+});
+const wrapperResults = await wrapperTester.runTests();
+
+// Generate test reports
+const htmlReport = ReportGenerator.generateHTML({
+  suites: [complianceResults, wrapperResults],
+  totalTests: 25,
+  totalPassed: 23,
+  totalFailed: 2,
+  totalSkipped: 0,
+  duration: 5000,
+  success: false,
 });
 ```
 
