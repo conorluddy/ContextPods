@@ -156,14 +156,18 @@ export class CreateMCPTool extends BaseTool {
       );
 
       // Step 5: Validate template variables
-      const isValid = await this.templateEngine.validateVariables(
+      const validationResult = await this.templateEngine.validateVariables(
         template.template as TemplateMetadata,
         variables,
       );
-      if (!isValid) {
+      if (!validationResult.isValid) {
+        const errorDetails = validationResult.errors
+          .map((err) => `• ${err.field}: ${err.message}`)
+          .join('\n');
+
         return {
           success: false,
-          error: 'Template variable validation failed',
+          error: `Template variable validation failed:\n${errorDetails}`,
         };
       }
 

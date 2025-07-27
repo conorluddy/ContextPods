@@ -161,6 +161,25 @@ export interface TemplateProcessingResult {
 }
 
 /**
+ * Template validation error details
+ */
+export interface TemplateValidationError {
+  field: string;
+  message: string;
+  currentValue: unknown;
+  expectedType: string;
+  pattern?: string;
+}
+
+/**
+ * Template validation result with detailed errors
+ */
+export interface TemplateValidationResult {
+  isValid: boolean;
+  errors: TemplateValidationError[];
+}
+
+/**
  * Template engine interface
  */
 export interface TemplateEngine {
@@ -175,7 +194,7 @@ export interface TemplateEngine {
   validateVariables(
     metadata: TemplateMetadata,
     variables: Record<string, unknown>,
-  ): Promise<boolean>;
+  ): Promise<TemplateValidationResult>;
 
   /**
    * Get supported languages

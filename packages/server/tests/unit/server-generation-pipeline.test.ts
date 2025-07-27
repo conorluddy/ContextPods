@@ -197,7 +197,7 @@ describe('Server Generation Pipeline', () => {
 
     // Setup mock template engine
     mockTemplateEngine = {
-      validateVariables: vi.fn().mockResolvedValue(true),
+      validateVariables: vi.fn().mockResolvedValue({ isValid: true, errors: [] }),
       process: vi.fn().mockResolvedValue({
         success: true,
         generatedFiles: [
@@ -581,7 +581,24 @@ describe('Server Generation Pipeline', () => {
 
     it('should handle variable validation failure', async () => {
       // Setup: Template variable validation fails
-      mockTemplateEngine.validateVariables.mockResolvedValue(false);
+      mockTemplateEngine.validateVariables.mockResolvedValue({
+        isValid: false,
+        errors: [
+          {
+            field: 'serverName',
+            message: "Variable 'serverName' should be of type 'string', got 'number'",
+            currentValue: 123,
+            expectedType: 'string',
+          },
+          {
+            field: 'invalidVariable',
+            message: "Variable 'invalidVariable' does not match required pattern: ^[a-z0-9-]+$",
+            currentValue: 'some-value',
+            expectedType: 'string',
+            pattern: '^[a-z0-9-]+$',
+          },
+        ],
+      });
 
       const args = {
         name: 'invalid-variables-server',

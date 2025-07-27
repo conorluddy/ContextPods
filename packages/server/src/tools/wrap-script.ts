@@ -137,11 +137,18 @@ export class WrapScriptTool extends BaseTool {
       const variables = this.prepareTemplateVariables(typedArgs, template.template, scriptAnalysis);
 
       // Step 6: Validate template variables
-      const isValid = await this.templateEngine.validateVariables(template.template, variables);
-      if (!isValid) {
+      const validationResult = await this.templateEngine.validateVariables(
+        template.template,
+        variables,
+      );
+      if (!validationResult.isValid) {
+        const errorDetails = validationResult.errors
+          .map((err) => `• ${err.field}: ${err.message}`)
+          .join('\n');
+
         return {
           success: false,
-          error: 'Template variable validation failed',
+          error: `Template variable validation failed:\n${errorDetails}`,
         };
       }
 

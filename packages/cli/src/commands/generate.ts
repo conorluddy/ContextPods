@@ -357,9 +357,13 @@ async function validateTemplateVariables(
 ): Promise<void> {
   const templateEngine = new DefaultTemplateEngine();
 
-  const isValid = await templateEngine.validateVariables(template.template, variables);
-  if (!isValid) {
-    throw new Error('Template variable validation failed');
+  const validationResult = await templateEngine.validateVariables(template.template, variables);
+  if (!validationResult.isValid) {
+    const errorDetails = validationResult.errors
+      .map((err) => `• ${err.field}: ${err.message}`)
+      .join('\n');
+
+    throw new Error(`Template variable validation failed:\n${errorDetails}`);
   }
 }
 
