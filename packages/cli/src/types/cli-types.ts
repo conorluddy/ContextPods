@@ -111,6 +111,12 @@ export interface GenerateOptions {
   description?: string;
   variables?: Record<string, any>;
   force?: boolean;
+  generateMcpConfig?: boolean;
+  configName?: string;
+  configPath?: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
 }
 
 /**

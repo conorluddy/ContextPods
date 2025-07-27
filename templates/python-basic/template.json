@@ -72,5 +72,13 @@
     "start": "python main.py",
     "test": "python -m pytest tests/",
     "lint": "python -m flake8 src/ main.py"
+  },
+  "mcpConfig": {
+    "defaultCommand": "python",
+    "defaultArgs": ["main.py"],
+    "defaultEnv": {
+      "PYTHONPATH": "."
+    },
+    "generateByDefault": true
   }
 }

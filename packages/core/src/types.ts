@@ -50,6 +50,28 @@ export interface TemplateFile {
 }
 
 /**
+ * MCP configuration for Claude Desktop
+ */
+export interface MCPConfig {
+  command: string;
+  args?: string[];
+  cwd?: string;
+  env?: Record<string, string>;
+}
+
+/**
+ * MCP configuration generation options
+ */
+export interface MCPConfigOptions {
+  generateConfig: boolean;
+  configName?: string;
+  configPath?: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+/**
  * Metadata for a pod template
  */
 export interface TemplateMetadata {
@@ -68,6 +90,12 @@ export interface TemplateMetadata {
     peer?: string[];
   };
   scripts?: Record<string, string>;
+  mcpConfig?: {
+    defaultCommand?: string;
+    defaultArgs?: string[];
+    defaultEnv?: Record<string, string>;
+    generateByDefault?: boolean;
+  };
 }
 
 /**
@@ -145,6 +173,7 @@ export interface TemplateContext {
   outputPath: string;
   templatePath: string;
   optimization: TemplateOptimization;
+  mcpConfig?: MCPConfigOptions;
 }
 
 /**
@@ -158,6 +187,7 @@ export interface TemplateProcessingResult {
   warnings?: string[];
   buildCommand?: string;
   devCommand?: string;
+  mcpConfigPath?: string;
 }
 
 /**

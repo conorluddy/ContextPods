@@ -78,6 +78,15 @@ export class DefaultTemplateEngine implements TemplateEngine {
         result.devCommand = 'cargo run';
       }
 
+      // Generate MCP config if requested
+      if (context.mcpConfig?.generateConfig) {
+        const mcpConfigPath = await this.generateMCPConfig(metadata, context);
+        if (mcpConfigPath) {
+          result.mcpConfigPath = mcpConfigPath;
+          result.generatedFiles.push(mcpConfigPath);
+        }
+      }
+
       result.success = true;
       logger.info(
         `Template processed successfully: ${result.generatedFiles.length} files generated`,
@@ -267,5 +276,83 @@ export class DefaultTemplateEngine implements TemplateEngine {
     }
 
     return processed;
+  }
+
+  /**
+   * Generate MCP configuration file
+   */
+  private async generateMCPConfig(
+    metadata: TemplateMetadata,
+    context: TemplateContext,
+  ): Promise<string | null> {
+    try {
+      const { mcpConfig } = context;
+      if (!mcpConfig) return null;
+
+      // Determine config name
+      const configName =
+        mcpConfig.configName || String(context.variables.serverName) || 'mcp-server';
+
+      // Determine command and args
+      let command = mcpConfig.command;
+      let args = mcpConfig.args;
+
+      if (!command && metadata.mcpConfig) {
+        command = metadata.mcpConfig.defaultCommand;
+        args = metadata.mcpConfig.defaultArgs;
+      }
+
+      // Fallback based on language
+      if (!command) {
+        switch (metadata.language) {
+          case TemplateLanguage.TYPESCRIPT:
+          case TemplateLanguage.NODEJS:
+            command = 'node';
+            args = ['dist/index.js'];
+            break;
+          case TemplateLanguage.PYTHON:
+            command = 'python';
+            args = ['main.py'];
+            break;
+          case TemplateLanguage.RUST:
+            command = 'cargo';
+            args = ['run'];
+            break;
+          default:
+            command = 'node';
+            args = ['dist/index.js'];
+        }
+      }
+
+      // Prepare environment variables
+      const env = {
+        ...(metadata.mcpConfig?.defaultEnv || {}),
+        ...(mcpConfig.env || {}),
+      };
+
+      // Create MCP config object
+      const mcpConfigData = {
+        mcpServers: {
+          [configName]: {
+            command,
+            args,
+            cwd: context.outputPath,
+            env,
+          },
+        },
+      };
+
+      // Generate config file path
+      const configPath = mcpConfig.configPath || join(context.outputPath, '.mcp.json');
+
+      // Write config file
+      await fs.writeFile(configPath, JSON.stringify(mcpConfigData, null, 2), 'utf8');
+
+      logger.info(`Generated MCP config: ${configPath}`);
+      return configPath;
+    } catch (error) {
+      logger.error('Failed to generate MCP config:', error);
+      return null;
+    }
   }
 }
