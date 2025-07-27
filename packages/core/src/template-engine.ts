@@ -178,16 +178,31 @@ export class DefaultTemplateEngine implements TemplateEngine {
       }
 
       // Options validation
-      if (
-        definition.validation?.options &&
-        !definition.validation.options.includes(String(value))
-      ) {
-        errors.push({
-          field: name,
-          message: `Variable '${name}' must be one of: ${definition.validation.options.join(', ')}`,
-          currentValue: value,
-          expectedType: definition.type,
-        });
+      if (definition.validation?.options) {
+        if (definition.type === 'array' && Array.isArray(value)) {
+          // For arrays, validate each element
+          const invalidValues = value.filter(
+            (item) => !definition.validation!.options!.includes(String(item)),
+          );
+          if (invalidValues.length > 0) {
+            errors.push({
+              field: name,
+              message: `Array '${name}' contains invalid values: ${invalidValues.join(', ')}. Each value must be one of: ${definition.validation.options.join(', ')}`,
+              currentValue: value,
+              expectedType: definition.type,
+            });
+          }
+        } else if (definition.type !== 'array') {
+          // For non-arrays, validate the value directly
+          if (!definition.validation.options.includes(String(value))) {
+            errors.push({
+              field: name,
+              message: `Variable '${name}' must be one of: ${definition.validation.options.join(', ')}`,
+              currentValue: value,
+              expectedType: definition.type,
+            });
+          }
+        }
       }
     }
 
