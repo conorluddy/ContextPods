@@ -460,11 +460,10 @@ describe('CLI Commands', () => {
       // Action: Import and test formatter
       const { output } = await import('../../src/utils/output-formatter.js');
 
-      // Action: Call template formatter
-      output.template('typescript-advanced');
+      // Action: Call template formatter and verify it doesn't throw
+      expect(() => output.template('typescript-advanced')).not.toThrow();
 
-      // Assert: Mock function was called correctly
-      expect(output.template).toHaveBeenCalledWith('typescript-advanced');
+      // Assert: Template formatter method exists
       expect(typeof output.template).toBe('function');
     });
 
@@ -472,11 +471,10 @@ describe('CLI Commands', () => {
       // Action: Import and test formatter
       const { output } = await import('../../src/utils/output-formatter.js');
 
-      // Action: Call path formatter
-      output.path('/some/path');
+      // Action: Call path formatter and verify it doesn't throw
+      expect(() => output.path('/some/path')).not.toThrow();
 
-      // Assert: Mock function was called correctly
-      expect(output.path).toHaveBeenCalledWith('/some/path');
+      // Assert: Path formatter method exists
       expect(typeof output.path).toBe('function');
     });
   });
@@ -488,7 +486,7 @@ describe('CLI Commands', () => {
     it('should handle missing required parameters', async () => {
       // Setup: Mock command that validates parameters
       vi.doMock('../../src/commands/generate.js', () => ({
-        generateCommand: vi.fn().mockImplementation((template, options, context) => {
+        generateCommand: vi.fn().mockImplementation((template, options, _context) => {
           if (!options.name) {
             return Promise.resolve({
               success: false,
