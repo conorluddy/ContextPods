@@ -46,7 +46,7 @@ export DEBUG=context-pods:*
 # Function to start the server
 start_server() {
     echo "🚀 Starting server..."
-    node packages/server/dist/index.js &
+    node packages/server/dist/src/index.js &
     SERVER_PID=$!
     echo "📡 Server started with PID: $SERVER_PID"
 }
@@ -104,7 +104,7 @@ echo "👀 Watching for changes..."
 # Simple file watcher - restart server when dist files change
 while true; do
     # Check if dist files have been modified recently (within last 2 seconds)
-    RECENT_FILES=$(find packages/server/dist -name "*.js" -newermt "2 seconds ago" 2>/dev/null | wc -l)
+    RECENT_FILES=$(find packages/server/dist/src -name "*.js" -newermt "2 seconds ago" 2>/dev/null | wc -l)
     
     if [ "$RECENT_FILES" -gt 0 ]; then
         restart_server

@@ -22,7 +22,7 @@ async function testMCPConnection() {
 
   // Start the server
   console.log('🚀 Starting MCP server...');
-  const serverProcess = spawn('node', ['packages/server/dist/index.js'], {
+  const serverProcess = spawn('node', ['packages/server/dist/src/index.js'], {
     cwd: projectRoot,
     stdio: ['pipe', 'pipe', 'pipe']
   });
