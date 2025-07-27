@@ -2,22 +2,18 @@
  * Script wrapper testing implementation
  */
 
-import { execa, type ExecaChildProcess } from 'execa';
-import { join, dirname } from 'path';
+import { execa } from 'execa';
+import { dirname } from 'path';
 import { promises as fs } from 'fs';
 import { logger } from '@context-pods/core';
-import type {
-  WrapperTestConfig,
-  WrapperTestCase,
-  TestResult,
-  TestSuiteResult,
-} from '../types.js';
+import type { WrapperTestConfig, WrapperTestCase, TestResult, TestSuiteResult } from '../types.js';
+import { TestStatus } from '../types.js';
 import { ParameterValidator } from './parameter-validator.js';
 import { OutputValidator } from './output-validator.js';
 
 /**
  * Script wrapper tester
- * 
+ *
  * Tests wrapped scripts to ensure they work correctly through MCP interface
  */
 export class ScriptWrapperTester {
@@ -46,7 +42,7 @@ export class ScriptWrapperTester {
     } catch (error) {
       tests.push({
         name: 'Script Validation',
-        status: 'failed',
+        status: TestStatus.FAILED,
         duration: 0,
         error: `Script not found: ${this.config.scriptPath}`,
       });
@@ -94,15 +90,11 @@ export class ScriptWrapperTester {
 
         if (testCase.expectedError instanceof RegExp) {
           if (!testCase.expectedError.test(result.error)) {
-            throw new Error(
-              `Error message doesn't match pattern: ${result.error}`,
-            );
+            throw new Error(`Error message doesn't match pattern: ${result.error}`);
           }
         } else {
           if (!result.error.includes(testCase.expectedError)) {
-            throw new Error(
-              `Error message doesn't match: ${result.error}`,
-            );
+            throw new Error(`Error message doesn't match: ${result.error}`);
           }
         }
       } else if (result.error) {
@@ -111,13 +103,13 @@ export class ScriptWrapperTester {
 
       return {
         name: testCase.name,
-        status: 'passed',
+        status: TestStatus.PASSED,
         duration: Date.now() - startTime,
       };
     } catch (error) {
       return {
         name: testCase.name,
-        status: 'failed',
+        status: TestStatus.FAILED,
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -138,7 +130,7 @@ export class ScriptWrapperTester {
       const command = this.getExecutionCommand();
       const args = this.buildArguments(input);
 
-      const process = await execa(command.cmd, [...command.args, ...args], {
+      const execResult = await execa(command.cmd, [...command.args, ...args], {
         cwd: dirname(this.config.scriptPath),
         timeout: timeout || this.config.timeout || 30000,
         env: {
@@ -150,17 +142,17 @@ export class ScriptWrapperTester {
       // Parse output
       try {
         return {
-          output: JSON.parse(process.stdout),
+          output: JSON.parse(execResult.stdout) as unknown,
         };
       } catch {
         // If not JSON, return raw output
         return {
-          output: process.stdout,
+          output: execResult.stdout,
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
-        error: error.message || String(error),
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -179,7 +171,7 @@ export class ScriptWrapperTester {
       case 'shell':
         return { cmd: 'bash', args: [] };
       default:
-        throw new Error(`Unsupported language: ${this.config.language}`);
+        throw new Error(`Unsupported language: ${this.config.language as string}`);
     }
   }
 
@@ -233,13 +225,13 @@ export class ScriptWrapperTester {
 
       return {
         name: 'Parameter Passing',
-        status: 'passed',
+        status: TestStatus.PASSED,
         duration: Date.now() - startTime,
       };
     } catch (error) {
       return {
         name: 'Parameter Passing',
-        status: 'failed',
+        status: TestStatus.FAILED,
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -280,21 +272,19 @@ export class ScriptWrapperTester {
         }
 
         if (test.expectedError && !test.expectedError.test(result.error)) {
-          throw new Error(
-            `Error doesn't match pattern for ${test.name}: ${result.error}`,
-          );
+          throw new Error(`Error doesn't match pattern for ${test.name}: ${result.error}`);
         }
       }
 
       return {
         name: 'Error Handling',
-        status: 'passed',
+        status: TestStatus.PASSED,
         duration: Date.now() - startTime,
       };
     } catch (error) {
       return {
         name: 'Error Handling',
-        status: 'failed',
+        status: TestStatus.FAILED,
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -313,7 +303,7 @@ export class ScriptWrapperTester {
         {
           name: 'json-output',
           input: { format: 'json' },
-          validator: (output: any) => {
+          validator: (output: unknown): void => {
             if (typeof output !== 'object') {
               throw new Error('Expected JSON object output');
             }
@@ -322,7 +312,7 @@ export class ScriptWrapperTester {
         {
           name: 'text-output',
           input: { format: 'text' },
-          validator: (output: any) => {
+          validator: (output: unknown): void => {
             if (typeof output !== 'string') {
               throw new Error('Expected text output');
             }
@@ -331,7 +321,7 @@ export class ScriptWrapperTester {
         {
           name: 'array-output',
           input: { format: 'array' },
-          validator: (output: any) => {
+          validator: (output: unknown): void => {
             if (!Array.isArray(output)) {
               throw new Error('Expected array output');
             }
@@ -351,13 +341,13 @@ export class ScriptWrapperTester {
 
       return {
         name: 'Output Format',
-        status: 'passed',
+        status: TestStatus.PASSED,
         duration: Date.now() - startTime,
       };
     } catch (error) {
       return {
         name: 'Output Format',
-        status: 'failed',
+        status: TestStatus.FAILED,
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -408,13 +398,13 @@ export class ScriptWrapperTester {
 
       return {
         name: 'Type Conversion',
-        status: 'passed',
+        status: TestStatus.PASSED,
         duration: Date.now() - startTime,
       };
     } catch (error) {
       return {
         name: 'Type Conversion',
-        status: 'failed',
+        status: TestStatus.FAILED,
         duration: Date.now() - startTime,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -425,9 +415,9 @@ export class ScriptWrapperTester {
    * Create test suite result
    */
   private createSuiteResult(tests: TestResult[], startTime: number): TestSuiteResult {
-    const passed = tests.filter((t) => t.status === 'passed').length;
-    const failed = tests.filter((t) => t.status === 'failed').length;
-    const skipped = tests.filter((t) => t.status === 'skipped').length;
+    const passed = tests.filter((t) => t.status === TestStatus.PASSED).length;
+    const failed = tests.filter((t) => t.status === TestStatus.FAILED).length;
+    const skipped = tests.filter((t) => t.status === TestStatus.SKIPPED).length;
 
     return {
       name: `Wrapper Tests: ${this.config.scriptPath}`,

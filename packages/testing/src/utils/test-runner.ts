@@ -3,7 +3,8 @@
  */
 
 import { logger } from '@context-pods/core';
-import type { TestSuiteResult, TestResult } from '../types.js';
+import type { TestSuiteResult, WrapperTestConfig, TestRunResult } from '../types.js';
+import { TestStatus } from '../types.js';
 import { MCPComplianceTestSuite } from '../protocol/compliance.js';
 import { ScriptWrapperTester } from '../wrappers/wrapper-tester.js';
 
@@ -54,9 +55,9 @@ export class TestRunner {
             tests: [
               {
                 name: 'Suite Execution',
-                status: 'failed',
+                status: TestStatus.FAILED,
                 duration: 0,
-                error: result.reason?.message || 'Unknown error',
+                error: (result.reason as Error)?.message || 'Unknown error',
               },
             ],
             duration: 0,
@@ -83,7 +84,7 @@ export class TestRunner {
             tests: [
               {
                 name: 'Suite Execution',
-                status: 'failed',
+                status: TestStatus.FAILED,
                 duration: 0,
                 error: error instanceof Error ? error.message : String(error),
               },
@@ -129,7 +130,7 @@ export class TestRunner {
   private async runSuiteWithRetries(suite: TestSuite): Promise<TestSuiteResult> {
     let lastError: Error | undefined;
 
-    for (let attempt = 0; attempt <= this.config.retries; attempt++) {
+    for (let attempt = 0; attempt <= (this.config.retries || 0); attempt++) {
       try {
         if (attempt > 0) {
           logger.info(`Retrying suite: ${suite.name} (attempt ${attempt + 1})`);
@@ -138,7 +139,7 @@ export class TestRunner {
         return await this.runSuite(suite);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        if (attempt < this.config.retries) {
+        if (attempt < (this.config.retries || 0)) {
           logger.warn(`Suite failed, retrying: ${lastError.message}`);
         }
       }
@@ -154,16 +155,21 @@ export class TestRunner {
     logger.info(`Running test suite: ${suite.name}`);
 
     switch (suite.type) {
-      case 'mcp-compliance':
+      case 'mcp-compliance': {
         const complianceSuite = new MCPComplianceTestSuite(
-          suite.serverPath!,
+          suite.serverPath || '',
           this.config.debug,
         );
         return await complianceSuite.runFullSuite();
+      }
 
-      case 'script-wrapper':
-        const wrapperTester = new ScriptWrapperTester(suite.wrapperConfig!);
+      case 'script-wrapper': {
+        if (!suite.wrapperConfig) {
+          throw new Error('Script wrapper suite requires wrapperConfig');
+        }
+        const wrapperTester = new ScriptWrapperTester(suite.wrapperConfig);
         return await wrapperTester.runTests();
+      }
 
       case 'custom':
         if (!suite.runner) {
@@ -172,17 +178,14 @@ export class TestRunner {
         return await suite.runner();
 
       default:
-        throw new Error(`Unknown suite type: ${suite.type}`);
+        throw new Error(`Unknown suite type: ${String(suite.type)}`);
     }
   }
 
   /**
    * Create MCP compliance test suite
    */
-  static createMCPComplianceSuite(
-    name: string,
-    serverPath: string,
-  ): TestSuite {
+  static createMCPComplianceSuite(name: string, serverPath: string): TestSuite {
     return {
       name,
       type: 'mcp-compliance',
@@ -193,10 +196,7 @@ export class TestRunner {
   /**
    * Create script wrapper test suite
    */
-  static createWrapperSuite(
-    name: string,
-    config: any,
-  ): TestSuite {
+  static createWrapperSuite(name: string, config: WrapperTestConfig): TestSuite {
     return {
       name,
       type: 'script-wrapper',
@@ -207,10 +207,7 @@ export class TestRunner {
   /**
    * Create custom test suite
    */
-  static createCustomSuite(
-    name: string,
-    runner: () => Promise<TestSuiteResult>,
-  ): TestSuite {
+  static createCustomSuite(name: string, runner: () => Promise<TestSuiteResult>): TestSuite {
     return {
       name,
       type: 'custom',
@@ -226,7 +223,7 @@ export interface TestSuite {
   name: string;
   type: 'mcp-compliance' | 'script-wrapper' | 'custom';
   serverPath?: string;
-  wrapperConfig?: any;
+  wrapperConfig?: WrapperTestConfig;
   runner?: () => Promise<TestSuiteResult>;
 }
 
@@ -239,17 +236,4 @@ export interface TestRunnerConfig {
   timeout?: number;
   retries?: number;
   debug?: boolean;
-}
-
-/**
- * Test run result
- */
-export interface TestRunResult {
-  suites: TestSuiteResult[];
-  duration: number;
-  totalTests: number;
-  totalPassed: number;
-  totalFailed: number;
-  totalSkipped: number;
-  success: boolean;
 }

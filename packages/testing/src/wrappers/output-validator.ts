@@ -2,7 +2,6 @@
  * Output validation for wrapped scripts
  */
 
-import { logger } from '@context-pods/core';
 import { z, type ZodSchema } from 'zod';
 
 /**
@@ -24,7 +23,7 @@ export class OutputValidator {
 
     // If expected is a function, use it as validator
     if (typeof expected === 'function') {
-      const isValid = expected(actual);
+      const isValid = (expected as (val: unknown) => boolean)(actual);
       if (!isValid) {
         throw new Error('Output validation failed: custom validator returned false');
       }
@@ -42,10 +41,7 @@ export class OutputValidator {
   /**
    * Validate output format
    */
-  validateFormat(
-    output: unknown,
-    format: 'json' | 'text' | 'csv' | 'xml' | 'yaml',
-  ): void {
+  validateFormat(output: unknown, format: 'json' | 'text' | 'csv' | 'xml' | 'yaml'): void {
     switch (format) {
       case 'json':
         this.validateJsonFormat(output);
@@ -63,7 +59,7 @@ export class OutputValidator {
         this.validateYamlFormat(output);
         break;
       default:
-        throw new Error(`Unknown format: ${format}`);
+        throw new Error(`Unknown format: ${format as string}`);
     }
   }
 
@@ -121,16 +117,11 @@ export class OutputValidator {
   /**
    * Validate output structure
    */
-  validateStructure(
-    output: unknown,
-    structure: OutputStructure,
-  ): void {
+  validateStructure(output: unknown, structure: OutputStructure): void {
     if (structure.type) {
       const actualType = Array.isArray(output) ? 'array' : typeof output;
       if (actualType !== structure.type) {
-        throw new Error(
-          `Expected output type ${structure.type}, got ${actualType}`,
-        );
+        throw new Error(`Expected output type ${structure.type}, got ${actualType}`);
       }
     }
 
@@ -144,7 +135,7 @@ export class OutputValidator {
 
     if (structure.properties && typeof output === 'object' && output !== null) {
       for (const [key, validator] of Object.entries(structure.properties)) {
-        const value = (output as any)[key];
+        const value = (output as Record<string, unknown>)[key];
         if (value !== undefined) {
           validator(value);
         }
@@ -154,18 +145,14 @@ export class OutputValidator {
     if (structure.minLength !== undefined) {
       const length = Array.isArray(output) ? output.length : String(output).length;
       if (length < structure.minLength) {
-        throw new Error(
-          `Output length ${length} is less than minimum ${structure.minLength}`,
-        );
+        throw new Error(`Output length ${length} is less than minimum ${structure.minLength}`);
       }
     }
 
     if (structure.maxLength !== undefined) {
       const length = Array.isArray(output) ? output.length : String(output).length;
       if (length > structure.maxLength) {
-        throw new Error(
-          `Output length ${length} is greater than maximum ${structure.maxLength}`,
-        );
+        throw new Error(`Output length ${length} is greater than maximum ${structure.maxLength}`);
       }
     }
   }
@@ -205,7 +192,11 @@ export class OutputValidator {
     // Basic CSV validation - check for delimiter consistency
     const lines = output.split('\n').filter(Boolean);
     if (lines.length > 0) {
-      const firstLineCommas = (lines[0].match(/,/g) || []).length;
+      const firstLine = lines[0];
+      if (!firstLine) {
+        throw new Error('Empty first line in CSV');
+      }
+      const firstLineCommas = (firstLine.match(/,/g) || []).length;
       for (const line of lines) {
         const commas = (line.match(/,/g) || []).length;
         if (commas !== firstLineCommas) {
@@ -226,7 +217,7 @@ export class OutputValidator {
     // Basic XML validation - check for balanced tags
     const openTags = output.match(/<[^/][^>]*>/g) || [];
     const closeTags = output.match(/<\/[^>]+>/g) || [];
-    
+
     if (openTags.length !== closeTags.length) {
       throw new Error('Unbalanced XML tags');
     }
@@ -257,7 +248,7 @@ export class OutputValidator {
       typeof value === 'object' &&
       value !== null &&
       'safeParse' in value &&
-      typeof (value as any).safeParse === 'function'
+      typeof (value as { safeParse?: unknown }).safeParse === 'function'
     );
   }
 
@@ -281,7 +272,7 @@ export class OutputValidator {
       const bKeys = Object.keys(b);
       if (aKeys.length !== bKeys.length) return false;
       return aKeys.every((key) =>
-        this.deepEqual((a as any)[key], (b as any)[key]),
+        this.deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
       );
     }
 

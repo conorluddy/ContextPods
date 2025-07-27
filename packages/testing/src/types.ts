@@ -37,6 +37,35 @@ export interface TestSuiteResult {
 }
 
 /**
+ * MCP Server manifest interface
+ */
+export interface MCPServerManifest {
+  name: string;
+  version: string;
+  description: string;
+  tools?: Array<{
+    name: string;
+    description?: string;
+    inputSchema: Record<string, unknown>;
+  }>;
+  resources?: Array<{
+    uri: string;
+    name: string;
+    description?: string;
+    mimeType?: string;
+  }>;
+  prompts?: Array<{
+    name: string;
+    description?: string;
+    arguments?: Array<{
+      name: string;
+      description?: string;
+      required?: boolean;
+    }>;
+  }>;
+}
+
+/**
  * MCP validation result
  */
 export interface MCPValidationResult {
@@ -152,4 +181,77 @@ export interface ValidationRule {
   description: string;
   validate: (message: unknown) => boolean | Promise<boolean>;
   errorMessage?: string;
+}
+
+/**
+ * MCP response type for API calls
+ */
+export interface MCPResponse {
+  jsonrpc: '2.0';
+  id: string | number | null;
+  result?: {
+    protocolVersion?: string;
+    capabilities?: Record<string, unknown>;
+    serverInfo?: {
+      name: string;
+      version?: string;
+    };
+    tools?: Array<{
+      name: string;
+      description?: string;
+      inputSchema: Record<string, unknown>;
+    }>;
+    resources?: Array<{
+      uri: string;
+      name: string;
+      description?: string;
+      mimeType?: string;
+    }>;
+    prompts?: Array<{
+      name: string;
+      description?: string;
+      arguments?: Array<{
+        name: string;
+        description?: string;
+        required?: boolean;
+      }>;
+    }>;
+    content?: Array<{
+      type: string;
+      text?: string;
+      data?: string;
+      mimeType?: string;
+    }>;
+    contents?: Array<{
+      uri: string;
+      mimeType?: string;
+      text?: string;
+      blob?: string;
+    }>;
+    messages?: Array<{
+      role: string;
+      content: {
+        type: string;
+        text: string;
+      };
+    }>;
+  };
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+}
+
+/**
+ * Test run result
+ */
+export interface TestRunResult {
+  suites: TestSuiteResult[];
+  duration: number;
+  totalTests: number;
+  totalPassed: number;
+  totalFailed: number;
+  totalSkipped: number;
+  success: boolean;
 }

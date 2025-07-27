@@ -2,7 +2,8 @@
  * Test report generator
  */
 
-import type { TestRunResult, TestSuiteResult } from '../types.js';
+import { TestStatus } from '../types.js';
+import type { TestSuiteResult, TestRunResult } from '../types.js';
 
 /**
  * Generate test reports in various formats
@@ -13,7 +14,7 @@ export class ReportGenerator {
    */
   static generateHTML(result: TestRunResult): string {
     const { suites, totalPassed, totalFailed, totalSkipped } = result;
-    
+
     return `
 <!DOCTYPE html>
 <html>
@@ -40,18 +41,26 @@ export class ReportGenerator {
         <p>Duration: ${result.duration}ms</p>
     </div>
     
-    ${suites.map(suite => `
+    ${suites
+      .map(
+        (suite: TestSuiteResult) => `
         <div class="suite">
             <h3>${suite.name}</h3>
             <p>Duration: ${suite.duration}ms</p>
-            ${suite.tests.map(test => `
+            ${suite.tests
+              .map(
+                (test) => `
                 <div class="test ${test.status}">
                     <strong>${test.name}</strong> - ${test.status} (${test.duration}ms)
-                    ${test.error ? `<br><small>Error: ${test.error}</small>` : ''}
+                    ${test.error ? `<br><small>Error: ${String(test.error)}</small>` : ''}
                 </div>
-            `).join('')}
+            `,
+              )
+              .join('')}
         </div>
-    `).join('')}
+    `,
+      )
+      .join('')}
 </body>
 </html>`;
   }
@@ -62,13 +71,21 @@ export class ReportGenerator {
   static generateJUnit(result: TestRunResult): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <testsuites tests="${result.totalTests}" failures="${result.totalFailed}" time="${result.duration / 1000}">
-${result.suites.map(suite => `
+${result.suites
+  .map(
+    (suite: TestSuiteResult) => `
   <testsuite name="${suite.name}" tests="${suite.tests.length}" failures="${suite.failed}" time="${suite.duration / 1000}">
-${suite.tests.map(test => `
+${suite.tests
+  .map(
+    (test) => `
     <testcase classname="${suite.name}" name="${test.name}" time="${test.duration / 1000}">
-${test.status === 'failed' ? `<failure message="${test.error || 'Test failed'}">${test.error || ''}</failure>` : ''}
-    </testcase>`).join('')}
-  </testsuite>`).join('')}
+${test.status === TestStatus.FAILED ? `<failure message="${String(test.error) || 'Test failed'}">${String(test.error) || ''}</failure>` : ''}
+    </testcase>`,
+  )
+  .join('')}
+  </testsuite>`,
+  )
+  .join('')}
 </testsuites>`;
   }
 }

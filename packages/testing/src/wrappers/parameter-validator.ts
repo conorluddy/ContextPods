@@ -11,11 +11,7 @@ export class ParameterValidator {
   /**
    * Validate that a parameter was passed correctly
    */
-  validateParameter(
-    paramName: string,
-    expectedValue: unknown,
-    scriptOutput: unknown,
-  ): boolean {
+  validateParameter(paramName: string, expectedValue: unknown, scriptOutput: unknown): boolean {
     try {
       // If output is an object, check if it contains parameter info
       if (
@@ -23,17 +19,19 @@ export class ParameterValidator {
         scriptOutput !== null &&
         'parameters' in scriptOutput
       ) {
-        const params = (scriptOutput as any).parameters;
+        const params = (scriptOutput as Record<string, unknown>).parameters as Record<
+          string,
+          unknown
+        >;
         return this.compareValues(params[paramName], expectedValue);
       }
 
       // If output is a simple echo of parameters
-      if (
-        typeof scriptOutput === 'object' &&
-        scriptOutput !== null &&
-        paramName in scriptOutput
-      ) {
-        return this.compareValues((scriptOutput as any)[paramName], expectedValue);
+      if (typeof scriptOutput === 'object' && scriptOutput !== null && paramName in scriptOutput) {
+        return this.compareValues(
+          (scriptOutput as Record<string, unknown>)[paramName],
+          expectedValue,
+        );
       }
 
       // For scripts that output parameter values directly
@@ -44,7 +42,7 @@ export class ParameterValidator {
       logger.warn(`Could not validate parameter ${paramName} in output`);
       return false;
     } catch (error) {
-      logger.error(`Parameter validation error: ${error}`);
+      logger.error(`Parameter validation error: ${String(error)}`);
       return false;
     }
   }
@@ -66,9 +64,7 @@ export class ParameterValidator {
       const actualType = this.getType(value);
 
       if (actualType !== expectedType) {
-        errors.push(
-          `Parameter ${param}: expected ${expectedType}, got ${actualType}`,
-        );
+        errors.push(`Parameter ${param}: expected ${expectedType}, got ${actualType}`);
       }
     }
 
@@ -124,35 +120,33 @@ export class ParameterValidator {
       // Min/max constraints
       if (constraint.min !== undefined && Number(value) < constraint.min) {
         violations.push(
-          `Parameter ${param}: value ${value} is less than minimum ${constraint.min}`,
+          `Parameter ${param}: value ${String(value)} is less than minimum ${constraint.min}`,
         );
       }
 
       if (constraint.max !== undefined && Number(value) > constraint.max) {
         violations.push(
-          `Parameter ${param}: value ${value} is greater than maximum ${constraint.max}`,
+          `Parameter ${param}: value ${String(value)} is greater than maximum ${constraint.max}`,
         );
       }
 
       // Pattern constraint
       if (constraint.pattern && !constraint.pattern.test(String(value))) {
         violations.push(
-          `Parameter ${param}: value ${value} doesn't match pattern ${constraint.pattern}`,
+          `Parameter ${param}: value ${String(value)} doesn't match pattern ${String(constraint.pattern)}`,
         );
       }
 
       // Enum constraint
-      if (constraint.enum && !constraint.enum.includes(value as any)) {
+      if (constraint.enum && !constraint.enum.includes(value)) {
         violations.push(
-          `Parameter ${param}: value ${value} is not one of ${constraint.enum.join(', ')}`,
+          `Parameter ${param}: value ${String(value)} is not one of ${constraint.enum?.join(', ') || 'unknown'}`,
         );
       }
 
       // Custom validator
       if (constraint.validator && !constraint.validator(value)) {
-        violations.push(
-          `Parameter ${param}: value ${value} failed custom validation`,
-        );
+        violations.push(`Parameter ${param}: value ${String(value)} failed custom validation`);
       }
     }
 
@@ -180,7 +174,10 @@ export class ParameterValidator {
       const actualKeys = Object.keys(actual);
       if (expectedKeys.length !== actualKeys.length) return false;
       return expectedKeys.every((key) =>
-        this.compareValues((actual as any)[key], (expected as any)[key]),
+        this.compareValues(
+          (actual as Record<string, unknown>)[key],
+          (expected as Record<string, unknown>)[key],
+        ),
       );
     }
 
