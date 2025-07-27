@@ -1,0 +1,50 @@
+{
+  "name": "@context-pods/testing",
+  "version": "0.0.1",
+  "description": "Comprehensive testing and validation framework for Context-Pods MCP servers",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write 'src/**/*.ts'"
+  },
+  "keywords": [
+    "mcp",
+    "testing",
+    "validation",
+    "model-context-protocol",
+    "test-framework"
+  ],
+  "author": "Context-Pods",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/conorluddy/ContextPods.git"
+  },
+  "dependencies": {
+    "@context-pods/core": "*",
+    "@modelcontextprotocol/sdk": "^1.16.0",
+    "zod": "^3.23.8",
+    "execa": "^9.6.0",
+    "p-limit": "^6.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "memfs": "^4.19.0",
+    "vitest": "^1.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
