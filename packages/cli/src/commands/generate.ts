@@ -48,6 +48,10 @@ export async function generateCommand(
     output.info('Configuring template variables...');
     const variables = await collectTemplateVariables(template, options, serverName, context);
 
+    // Parse environment variables from CLI format
+    const parsedEnv =
+      options.env && Array.isArray(options.env) ? parseKeyValuePairs(options.env) : undefined;
+
     // Step 6: Validate variables
     output.startSpinner('Validating template variables...');
     await validateTemplateVariables(template, variables);
@@ -55,7 +59,7 @@ export async function generateCommand(
 
     // Step 7: Generate MCP server
     output.startSpinner('Generating MCP server...');
-    await generateMCPServer(template, variables, outputPath, context);
+    await generateMCPServer(template, variables, outputPath, context, options, parsedEnv);
     output.succeedSpinner('MCP server generated successfully');
 
     // Step 8: Display success information
@@ -375,8 +379,14 @@ async function generateMCPServer(
   variables: Record<string, any>,
   outputPath: string,
   context: CommandContext,
+  options: GenerateOptions,
+  parsedEnv?: Record<string, string>,
 ): Promise<void> {
   const templateEngine = new DefaultTemplateEngine();
+
+  // Determine if MCP config should be generated
+  const shouldGenerateConfig =
+    options.generateMcpConfig ?? template.template.mcpConfig?.generateByDefault ?? false;
 
   await templateEngine.process(template.template, {
     variables,
@@ -388,6 +398,16 @@ async function generateMCPServer(
       sharedDependencies: context.config.turbo.enabled,
       buildCaching: context.config.turbo.caching,
     },
+    mcpConfig: shouldGenerateConfig
+      ? {
+          generateConfig: true,
+          configName: options.configName,
+          configPath: options.configPath,
+          command: options.command,
+          args: options.args,
+          env: parsedEnv,
+        }
+      : undefined,
   });
 }
 
@@ -428,4 +448,22 @@ function displaySuccess(
   if (isOptimized) {
     output.info('\n💡 This template supports TurboRepo optimization for faster builds!');
   }
+}
+
+/**
+ * Parse key=value pairs from CLI arguments
+ */
+function parseKeyValuePairs(pairs: string[]): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const pair of pairs) {
+    const [key, ...valueParts] = pair.split('=');
+    const value = valueParts.join('='); // Handle values with = in them
+
+    if (key && value !== undefined) {
+      result[key] = value;
+    }
+  }
+
+  return result;
 }

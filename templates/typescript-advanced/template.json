@@ -121,5 +121,13 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"
+  },
+  "mcpConfig": {
+    "defaultCommand": "node",
+    "defaultArgs": ["dist/index.js"],
+    "defaultEnv": {
+      "NODE_ENV": "production"
+    },
+    "generateByDefault": true
   }
 }

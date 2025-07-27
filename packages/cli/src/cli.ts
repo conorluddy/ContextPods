@@ -72,6 +72,12 @@ export function createProgram(): Command {
     .option('-d, --description <text>', 'MCP server description')
     .option('-f, --force', 'Overwrite existing files')
     .option('--var <key=value...>', 'Template variables (can be used multiple times)')
+    .option('--generate-mcp-config', 'Generate .mcp.json configuration file')
+    .option('--config-name <name>', 'Name for MCP server in config')
+    .option('--config-path <path>', 'Path for .mcp.json file')
+    .option('--command <command>', 'Command to run the MCP server')
+    .option('--args <args...>', 'Arguments for the MCP server command')
+    .option('--env <key=value...>', 'Environment variables (can be used multiple times)')
     .action(async (template, options, command) => {
       const context = await createCommandContext(command);
       await generateCommand(template, options, context);

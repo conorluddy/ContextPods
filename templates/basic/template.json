@@ -46,14 +46,6 @@
       "template": true
     },
     {
-      "path": "src/tools/index.ts",
-      "template": true
-    },
-    {
-      "path": "src/resources/index.ts",
-      "template": true
-    },
-    {
       "path": "README.md",
       "template": true
     }
@@ -68,5 +60,13 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit"
+  },
+  "mcpConfig": {
+    "defaultCommand": "node",
+    "defaultArgs": ["dist/index.js"],
+    "defaultEnv": {
+      "NODE_ENV": "production"
+    },
+    "generateByDefault": true
   }
 }

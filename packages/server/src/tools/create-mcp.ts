@@ -26,6 +26,12 @@ interface CreateMCPArgs extends Record<string, unknown> {
   description?: string;
   language?: string;
   variables?: Record<string, unknown>;
+  generateMcpConfig?: boolean;
+  configName?: string;
+  configPath?: string;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
 }
 
 /**
@@ -94,6 +100,29 @@ export class CreateMCPTool extends BaseTool {
 
     if (typedArgs.variables !== undefined) {
       error = this.validateArgument(typedArgs, 'variables', 'object', false);
+      if (error) return error;
+    }
+
+    // Validate MCP config arguments
+    error = this.validateArgument(typedArgs, 'generateMcpConfig', 'boolean', false);
+    if (error) return error;
+
+    error = this.validateStringArgument(typedArgs, 'configName', false);
+    if (error) return error;
+
+    error = this.validateStringArgument(typedArgs, 'configPath', false);
+    if (error) return error;
+
+    error = this.validateStringArgument(typedArgs, 'command', false);
+    if (error) return error;
+
+    if (typedArgs.args !== undefined) {
+      error = this.validateArgument(typedArgs, 'args', 'object', false);
+      if (error) return error;
+    }
+
+    if (typedArgs.env !== undefined) {
+      error = this.validateArgument(typedArgs, 'env', 'object', false);
       if (error) return error;
     }
 
@@ -187,6 +216,11 @@ export class CreateMCPTool extends BaseTool {
         await registry.markServerBuilding(serverMetadata.id);
 
         // Step 8: Process template
+        const shouldGenerateConfig =
+          typedArgs.generateMcpConfig ??
+          (template.template as TemplateMetadata).mcpConfig?.generateByDefault ??
+          false;
+
         const result = await this.templateEngine.process(template.template as TemplateMetadata, {
           variables,
           outputPath,
@@ -197,6 +231,16 @@ export class CreateMCPTool extends BaseTool {
             sharedDependencies: template.template.optimization.sharedDependencies,
             buildCaching: template.template.optimization.buildCaching,
           },
+          mcpConfig: shouldGenerateConfig
+            ? {
+                generateConfig: true,
+                configName: typedArgs.configName,
+                configPath: typedArgs.configPath,
+                command: typedArgs.command,
+                args: typedArgs.args,
+                env: typedArgs.env,
+              }
+            : undefined,
         });
 
         if (!result.success) {
@@ -354,6 +398,10 @@ export class CreateMCPTool extends BaseTool {
 
     if (result.devCommand) {
       message += `- Dev command: ${result.devCommand}\n`;
+    }
+
+    if (result.mcpConfigPath) {
+      message += `- MCP config: ${result.mcpConfigPath}\n`;
     }
 
     message += `\n🚀 Next steps:\n`;
