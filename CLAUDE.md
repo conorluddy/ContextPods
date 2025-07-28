@@ -52,3 +52,12 @@ npx @context-pods/testing generate-report ./test-results.json --format html
 - **ESLint Compliance** - Zero ESLint errors or warnings allowed
 - **Test Coverage** - New code should include comprehensive tests
 - **MCP Compliance** - All MCP servers must pass protocol validation tests
+
+## Template Generation Best Practices
+
+- **Array Validation** - Always validate array elements individually, not the entire array
+- **Error Messages** - Provide multi-line, actionable error messages with examples
+- **Standalone Templates** - Templates must work without workspace dependencies
+- **Pre-flight Checks** - Validate template integrity before processing
+- **ES Module Compatibility** - Use import.meta.url instead of \_\_dirname
+- **File Extensions** - Always include .js extensions in TypeScript imports

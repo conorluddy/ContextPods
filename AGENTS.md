@@ -32,6 +32,15 @@ _Important!_ ESLINT _MUST_ ALWAYS BE PASSING - Run it after every file change
 - **Exports**: Barrel exports in index.ts, explicit function return types
 - **Console**: Only `console.warn` and `console.error` allowed
 
+## Template Generation Guidelines
+
+- **Array Validation**: Check each array element against allowed options, not the whole array
+- **Error Messages**: Multi-line format with arrows (→) pointing to specific issues
+- **Pre-flight Validation**: Always validate template integrity before processing
+- **Standalone Templates**: No workspace dependencies - templates must be self-contained
+- **ES Modules**: Use `import.meta.url` for file paths, always include `.js` extensions
+- **Testing**: Template generation requires comprehensive unit and integration tests
+
 ## Architecture
 
 - Monorepo with workspaces in `packages/`
