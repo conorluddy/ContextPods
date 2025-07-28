@@ -7,7 +7,7 @@
  */
 
 import { createServer } from './server.js';
-import { logger } from '@context-pods/core';
+import { logger } from './utils/logger.js';
 
 /**
  * Main entry point for the {{serverName}} MCP server

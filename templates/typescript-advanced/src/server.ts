@@ -4,7 +4,6 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { logger } from '@context-pods/core';
 import { registerTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
 

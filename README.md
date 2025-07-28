@@ -419,7 +419,13 @@ npm run mcp:dev
 
 **📖 Complete Documentation:**
 
+- [Quick Reference](docs/QUICK_REFERENCE.md) - Common commands and quick fixes
 - [Meta-MCP Server Guide](docs/META_MCP_GUIDE.md) - Detailed usage and examples
+- [Template Variables Documentation](docs/TEMPLATE_VARIABLES.md) - All supported variables and validation rules
+- [Usage Examples](docs/USAGE_EXAMPLES.md) - Real-world scenarios and integration examples
+- [Template Development Guide](docs/TEMPLATE_DEVELOPMENT.md) - Create your own custom templates
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Migration Guide](docs/MIGRATION_GUIDE.md) - Upgrade existing servers and templates
 - [MCP Client Setup](docs/MCP_CLIENT_SETUP.md) - Configuration for all MCP clients
 - [Architecture Guide](docs/ARCHITECTURE.md) - Technical implementation details
 
