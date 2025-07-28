@@ -204,7 +204,13 @@ Every generated pod includes:
 - **Self-Contained TypeScript Config** - Templates now have independent tsconfig.json files
 - **Improved Error Messages** - Multi-line, actionable error messages guide users to solutions
 - **Pre-flight Validation** - Checks template integrity before processing begins
-- **Comprehensive Documentation** - Added 7 new documentation files covering all aspects
+- **Comprehensive Documentation** - Added 7 new documentation files covering all aspects:
+  - [Template Variables](docs/TEMPLATE_VARIABLES.md) - Complete variable reference
+  - [Usage Examples](docs/USAGE_EXAMPLES.md) - Real-world scenarios
+  - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+  - [Migration Guide](docs/MIGRATION_GUIDE.md) - Upgrading existing servers
+  - [Template Development](docs/TEMPLATE_DEVELOPMENT.md) - Creating custom templates
+  - [Quick Reference](docs/QUICK_REFERENCE.md) - Command cheat sheet
 - **Extensive Test Coverage** - 33 tests ensure reliability across all scenarios
 
 ### 🏗️ **Template Architecture**
