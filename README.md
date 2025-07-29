@@ -445,14 +445,19 @@ npm run mcp:dev
 
 **Note: NPM Package**
 
-WIP - CLI and Server packages are now available as NPM packages, but I haven't tested them yet. They should provide a convenient way to run these. I'll set them up properly asap.
+[WIP]
+
+CLI and Server packages are now available as NPM packages, but I haven't tested them yet. 
+
+They should provide a convenient way to run these. I'll set them up properly asap.
 
 https://www.npmjs.com/package/@context-pods/server
+
 https://www.npmjs.com/package/@context-pods/cli
 
 ```bash
-npm install @context-pods/server`
-npm install @context-pods/cli`
+npm install @context-pods/server
+npm install @context-pods/cli
 ```
 
 **📖 Complete Documentation:**
