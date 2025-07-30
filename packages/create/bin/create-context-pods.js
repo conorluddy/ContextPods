@@ -29,10 +29,17 @@ try {
     .map((arg) => `"${arg}"`)
     .join(' ');
 
-  // Run the CLI with the forwarded arguments
+  // Set the templates path environment variable to the installed templates
+  const templatesPath = join(tempDir, 'node_modules', '@context-pods', 'templates', 'templates');
+
+  // Run the CLI with the forwarded arguments and proper environment
   execSync(`node "${cliPath}" ${args}`, {
     stdio: 'inherit',
     cwd: process.cwd(),
+    env: {
+      ...process.env,
+      CONTEXT_PODS_TEMPLATES_PATH: templatesPath,
+    },
   });
 } catch (error) {
   console.error('\n❌ Error running Context-Pods:', error.message);

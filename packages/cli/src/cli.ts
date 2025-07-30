@@ -8,6 +8,7 @@ import { output } from './utils/output-formatter.js';
 // import { TurboIntegration } from './utils/turbo-integration.js'; // Unused for now
 import { CacheManager } from './utils/cache-manager.js';
 import { getAllExistingTemplatePaths } from '@context-pods/core';
+import { getTemplatesPath } from '@context-pods/templates';
 import type { CommandContext } from './types/cli-types.js';
 
 // Import command handlers (these will be implemented next)
@@ -286,9 +287,13 @@ async function createCommandContext(command: Command): Promise<CommandContext> {
   const workingDir = process.cwd();
 
   // Use consolidated path resolution from core package
+  // First, try to get templates from the installed package
+  const installedTemplatesPath = getTemplatesPath();
+
   const templatePaths = getAllExistingTemplatePaths({
     envVar: 'CONTEXT_PODS_TEMPLATES_PATH',
     additionalPaths: [
+      installedTemplatesPath, // Add the installed templates path first
       global.templatesPath.startsWith('/')
         ? global.templatesPath
         : `${workingDir}/${global.templatesPath}`,

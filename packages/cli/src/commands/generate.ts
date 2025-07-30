@@ -7,6 +7,7 @@ import path from 'path';
 import inquirer from 'inquirer';
 import type { TemplateSelectionResult, TemplateVariable } from '@context-pods/core';
 import { TemplateSelector, DefaultTemplateEngine } from '@context-pods/core';
+import { getTemplatesPath } from '@context-pods/templates';
 import type { GenerateOptions, CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 
@@ -95,7 +96,9 @@ async function selectTemplate(
   templateName: string | undefined,
   context: CommandContext,
 ): Promise<TemplateSelectionResult> {
-  const templateSelector = new TemplateSelector(context.templatePaths[0] || './templates');
+  // Use the templates path from the @context-pods/templates package
+  const templatesPath = context.templatePaths[0] || getTemplatesPath();
+  const templateSelector = new TemplateSelector(templatesPath);
 
   if (templateName) {
     // User specified template - find it in available templates
