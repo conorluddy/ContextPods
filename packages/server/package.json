@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-templates",
-    "copy-templates": "cp -r ../../templates ./templates 2>/dev/null || true",
+    "copy-templates": "rm -rf ./templates && cp -r ../../templates ./templates",
     "dev": "tsc --watch",
     "test": "vitest run --reporter=verbose --passWithNoTests",
     "test:coverage": "vitest run --reporter=verbose --passWithNoTests --coverage",
