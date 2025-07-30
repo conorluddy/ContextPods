@@ -22,6 +22,11 @@ vi.mock('os', () => ({
   homedir: vi.fn(() => '/home/user'),
 }));
 
+// Mock url module for import.meta.url
+vi.mock('url', () => ({
+  fileURLToPath: vi.fn(() => '/mocked/path/to/file.js'),
+}));
+
 describe('Template Path Resolution', () => {
   const originalEnv = process.env;
 
