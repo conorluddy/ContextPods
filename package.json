@@ -20,7 +20,9 @@
     "mcp:dev": "./scripts/dev-server.sh",
     "mcp:test": "./scripts/test-connection.mjs",
     "mcp:status": "./scripts/status.sh",
-    "clean:test-artifacts": "./scripts/clean-test-artifacts.sh"
+    "clean:test-artifacts": "./scripts/clean-test-artifacts.sh",
+    "release:prepare": "node ./scripts/prepare-release.mjs",
+    "release:version": "node ./scripts/update-versions.mjs"
   },
   "keywords": [
     "mcp",

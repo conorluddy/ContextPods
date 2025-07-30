@@ -443,22 +443,27 @@ npx @context-pods/cli server test      # Test connection
 npm run mcp:dev
 ```
 
-**Note: NPM Package**
+**NPM Packages**
 
-[WIP]
+All Context-Pods packages are published to npm:
 
-CLI and Server packages are now available as NPM packages, but I haven't tested them yet. 
-
-They should provide a convenient way to run these. I'll set them up properly asap.
-
-https://www.npmjs.com/package/@context-pods/server
-
-https://www.npmjs.com/package/@context-pods/cli
+- [@context-pods/core](https://www.npmjs.com/package/@context-pods/core) - Core utilities and template engine
+- [@context-pods/cli](https://www.npmjs.com/package/@context-pods/cli) - Command-line interface
+- [@context-pods/server](https://www.npmjs.com/package/@context-pods/server) - MCP server implementation
+- [@context-pods/testing](https://www.npmjs.com/package/@context-pods/testing) - Testing framework
 
 ```bash
+# Install individual packages
 npm install @context-pods/server
 npm install @context-pods/cli
+
+# Or install all packages
+npm install @context-pods/core @context-pods/cli @context-pods/server @context-pods/testing
 ```
+
+**Releases**
+
+Context-Pods follows semantic versioning and releases are automated through GitHub Releases. See [RELEASE.md](RELEASE.md) for the release process.
 
 **📖 Complete Documentation:**
 
