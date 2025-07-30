@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/core",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Core utilities and types for Context-Pods MCP farm",
   "type": "module",
   "main": "./dist/index.js",
