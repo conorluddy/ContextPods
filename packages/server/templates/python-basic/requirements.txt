@@ -1,0 +1,6 @@
+# MCP SDK for Python
+mcp>=0.5.0
+
+# Development dependencies (optional)
+pytest>=7.0.0
+flake8>=6.0.0

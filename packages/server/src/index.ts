@@ -50,7 +50,25 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
     tools: [
       {
         name: 'create-mcp',
-        description: 'Generate new MCP server from template with intelligent template selection',
+        description: `Generate a new MCP server from template with intelligent template selection.
+
+This tool creates a fully-functional MCP server with the specified configuration.
+The server name must follow specific naming conventions for compatibility.
+
+Format Requirements:
+- Name pattern: ^[a-zA-Z][a-zA-Z0-9_-]*$ (start with letter, then letters/numbers/hyphens/underscores)
+- Examples: "weather-api", "data_processor", "myTool123"
+- Invalid: "123server", "_server", "my server", "server@name"
+
+Language Selection:
+- typescript: Modern TypeScript with full type safety
+- javascript: Plain JavaScript with ES modules  
+- python: Python 3.8+ with async/await support
+- rust: Rust with tokio async runtime
+- shell: POSIX shell script wrapper
+
+The tool automatically selects the best template based on your language preference,
+or you can specify a template directly for advanced customization.`,
         inputSchema: {
           type: 'object',
           properties: {
@@ -87,7 +105,25 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
       },
       {
         name: 'wrap-script',
-        description: 'Convert existing script to MCP server with automatic language detection',
+        description: `Convert existing script to MCP server with automatic language detection.
+
+This tool wraps your existing scripts (Python, Shell, etc.) in a proper MCP server
+interface, enabling them to be used with MCP-compatible clients.
+
+Supported Script Types:
+- Python (.py): Detects Python scripts and creates async MCP wrapper
+- Shell (.sh, .bash): Creates shell command MCP interface
+- JavaScript (.js, .mjs): Wraps Node.js scripts with MCP protocol
+- TypeScript (.ts): Transpiles and wraps TypeScript scripts
+- Executable files: Creates generic command-line MCP wrapper
+
+Name Requirements:
+- Pattern: ^[a-zA-Z][a-zA-Z0-9_-]*$ (alphanumeric with hyphens/underscores)
+- Examples: "my_script_wrapper", "data-processor", "toolWrapper"
+- Invalid: "123wrapper", "_script", "my wrapper"
+
+The tool automatically detects the script language and selects the appropriate
+wrapper template, preserving your script's functionality while adding MCP compliance.`,
         inputSchema: {
           type: 'object',
           properties: {
@@ -123,7 +159,30 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
       },
       {
         name: 'list-mcps',
-        description: 'Show all managed MCP servers with filtering and formatting options',
+        description: `Show all managed MCP servers with filtering and formatting options.
+
+This tool provides comprehensive listing and filtering capabilities for all MCP servers
+managed by the Context-Pods toolkit.
+
+Filtering Options:
+- status: Filter by server status (created, building, ready, error, archived)
+- template: Filter by template name (basic, python-basic, typescript-advanced, etc.)
+- language: Filter by programming language (typescript, python, rust, shell, javascript)
+- search: Search in server names and descriptions (case-insensitive substring match)
+
+Output Formats:
+- table: Human-readable table format (default) - good for console viewing
+- json: Machine-readable JSON format - good for programmatic processing
+- summary: Condensed summary format - good for quick overviews
+
+Examples:
+- List all ready servers: {"status": "ready"}
+- Find Python servers: {"language": "python"}
+- Search for "weather": {"search": "weather"}
+- JSON format: {"format": "json"}
+
+The tool shows detailed information including status, template, language, build info,
+creation/update timestamps, and metadata for each managed server.`,
         inputSchema: {
           type: 'object',
           properties: {
@@ -159,7 +218,34 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
       },
       {
         name: 'validate-mcp',
-        description: 'Validate MCP server against official schema and best practices',
+        description: `Validate MCP server against official schema and best practices.
+
+This tool performs comprehensive validation of MCP servers to ensure they comply
+with MCP protocol standards and Context-Pods best practices.
+
+Validation Types:
+- Schema Validation (checkSchema: true): Validates against official MCP JSON schemas
+  * Checks tool definitions, resource definitions, protocol compliance
+  * Validates message formats and response structures
+  * Ensures proper error handling patterns
+
+- Registry Validation (checkRegistry: true): Checks registration and metadata
+  * Validates server registration in Context-Pods registry
+  * Checks metadata completeness and accuracy
+  * Verifies template compliance and configuration
+
+- Build Validation (checkBuild: false): Tests the build and runtime process
+  * Attempts to build the server if applicable
+  * Tests server startup and initialization
+  * Validates runtime MCP communication
+
+Path Requirements:
+- Must be an absolute or relative path to the MCP server directory
+- Directory must contain valid MCP server files (package.json, main files, etc.)
+- Examples: "./my-server", "/path/to/server", "../generated/weather-api"
+
+The validation process provides detailed reports with specific errors, warnings,
+and suggestions for fixing any compliance issues found.`,
         inputSchema: {
           type: 'object',
           properties: {
