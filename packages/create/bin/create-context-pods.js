@@ -13,9 +13,12 @@ const tempDir = mkdtempSync(join(tmpdir(), 'context-pods-'));
 try {
   // Install the CLI and core packages in the temp directory
   console.log('📦 Installing Context-Pods CLI...');
-  execSync(`npm install --prefix "${tempDir}" @context-pods/cli@latest @context-pods/core@latest`, {
-    stdio: 'inherit',
-  });
+  execSync(
+    `npm install --prefix "${tempDir}" @context-pods/cli@latest @context-pods/core@latest @context-pods/templates@latest`,
+    {
+      stdio: 'inherit',
+    },
+  );
 
   // Get the CLI path
   const cliPath = join(tempDir, 'node_modules', '@context-pods', 'cli', 'bin', 'context-pods');

@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/templates",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Template collection for Context-Pods MCP server generation",
   "type": "module",
   "main": "./dist/index.js",
