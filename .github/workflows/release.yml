@@ -52,10 +52,11 @@ jobs:
       - name: Update package versions
         run: |
           # Update all package versions to match the release tag
-          npm version ${{ steps.version.outputs.version }} --workspaces --no-git-tag-version
+          # The --allow-same-version flag prevents errors if versions are already correct
+          npm version ${{ steps.version.outputs.version }} --workspaces --no-git-tag-version --allow-same-version
 
           # Also update the root package.json
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version --allow-same-version
 
       - name: Publish to npm
         env:
