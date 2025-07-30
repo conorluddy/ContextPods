@@ -1,0 +1,72 @@
+{
+  "name": "basic",
+  "description": "Basic MCP server template with TypeScript and TurboRepo optimization",
+  "version": "1.0.0",
+  "author": "Context-Pods Team",
+  "tags": ["starter", "minimal", "typescript"],
+  "language": "typescript",
+  "optimization": {
+    "turboRepo": true,
+    "hotReload": true,
+    "sharedDependencies": true,
+    "buildCaching": true
+  },
+  "variables": {
+    "serverName": {
+      "description": "Name of the MCP server",
+      "type": "string",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-]+$"
+      }
+    },
+    "serverDescription": {
+      "description": "Description of the MCP server",
+      "type": "string",
+      "required": true
+    },
+    "includeExamples": {
+      "description": "Include example tools and resources",
+      "type": "boolean",
+      "required": false,
+      "default": true
+    }
+  },
+  "files": [
+    {
+      "path": "package.json",
+      "template": true
+    },
+    {
+      "path": "tsconfig.json",
+      "template": false
+    },
+    {
+      "path": "src/index.ts",
+      "template": true
+    },
+    {
+      "path": "README.md",
+      "template": true
+    }
+  ],
+  "dependencies": {
+    "core": ["@context-pods/core"],
+    "dev": ["@types/node", "typescript", "tsx"],
+    "peer": ["@modelcontextprotocol/sdk"]
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit"
+  },
+  "mcpConfig": {
+    "defaultCommand": "node",
+    "defaultArgs": ["dist/index.js"],
+    "defaultEnv": {
+      "NODE_ENV": "production"
+    },
+    "generateByDefault": true
+  }
+}

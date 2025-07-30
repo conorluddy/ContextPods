@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "TurboRepo-optimized CLI for Context-Pods MCP development suite",
   "type": "module",
   "main": "./dist/cli.js",
