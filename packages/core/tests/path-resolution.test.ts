@@ -24,7 +24,7 @@ vi.mock('os', () => ({
 
 // Mock url module for import.meta.url
 vi.mock('url', () => ({
-  fileURLToPath: vi.fn(() => '/mocked/path/to/file.js'),
+  fileURLToPath: vi.fn(() => '/opt/npm/context-pods/packages/core/dist/path-resolution.js'),
 }));
 
 describe('Template Path Resolution', () => {
