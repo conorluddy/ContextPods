@@ -78,6 +78,12 @@ jobs:
           echo "Publishing @context-pods/cli..."
           npm publish --workspace=@context-pods/cli --access public
 
+          echo "Publishing @context-pods/create..."
+          npm publish --workspace=@context-pods/create --access public
+
+          echo "Publishing @context-pods/templates..."
+          npm publish --workspace=@context-pods/templates --access public
+
       - name: Update release notes
         uses: actions/github-script@v7
         with:
@@ -92,7 +98,9 @@ jobs:
               '@context-pods/core',
               '@context-pods/testing', 
               '@context-pods/server',
-              '@context-pods/cli'
+              '@context-pods/cli',
+              '@context-pods/create',
+              '@context-pods/templates'
             ];
 
             const publishedInfo = `\n\n## Published Packages (v${version})\n\n` +
