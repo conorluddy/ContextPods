@@ -4,7 +4,7 @@
 
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, readFileSync } from 'fs';
+import { resolveTemplatePath } from '@context-pods/core';
 
 /**
  * Get the directory containing this module
@@ -21,90 +21,12 @@ function getModuleDir(): string {
 }
 
 /**
- * Find the Context-Pods project root by looking for package.json with the correct name
- */
-function findProjectRoot(startDir: string): string {
-  let current = startDir;
-
-  while (current !== dirname(current)) {
-    const packageJsonPath = join(current, 'package.json');
-
-    if (existsSync(packageJsonPath)) {
-      try {
-        const packageContent = readFileSync(packageJsonPath, 'utf8');
-        const pkg = JSON.parse(packageContent) as { name?: string; workspaces?: unknown };
-
-        // Look for the Context-Pods root package
-        if (pkg.name === 'context-pods' && pkg.workspaces) {
-          return current;
-        }
-      } catch (error) {
-        // Continue searching if package.json is malformed
-      }
-    }
-
-    current = dirname(current);
-  }
-
-  throw new Error(
-    'Could not find Context-Pods project root (package.json with name "context-pods")',
-  );
-}
-
-/**
- * Get a robust path to the templates directory with multiple fallback strategies
- */
-function getTemplatesPathRobust(): string {
-  const moduleDir = getModuleDir();
-
-  // Strategy 1: Try to find project root intelligently
-  try {
-    const projectRoot = findProjectRoot(moduleDir);
-    const templatesPath = join(projectRoot, 'templates');
-
-    if (existsSync(templatesPath)) {
-      return templatesPath;
-    }
-  } catch (error) {
-    // Continue to fallback strategies
-  }
-
-  // Strategy 2: Use corrected relative path for built files
-  // From packages/server/dist/src/config/ go up 5 levels to reach project root
-  const correctedPath = join(moduleDir, '../../../../../templates');
-  if (existsSync(correctedPath)) {
-    return correctedPath;
-  }
-
-  // Strategy 3: Try original path in case build structure changes
-  const originalPath = join(moduleDir, '../../../templates');
-  if (existsSync(originalPath)) {
-    return originalPath;
-  }
-
-  // Strategy 4: Try from source directory perspective
-  // From packages/server/src/config/ go up 4 levels to reach project root
-  const sourcePath = join(moduleDir, '../../../../templates');
-  if (existsSync(sourcePath)) {
-    return sourcePath;
-  }
-
-  // If all strategies fail, return the most likely correct path
-  // This will be used by calling code which should handle the missing directory
-  return correctedPath;
-}
-
-/**
- * Get templates directory path
+ * Get templates directory path using consolidated resolution
  */
 export function getTemplatesPath(): string {
-  // Strategy 0: Environment variable override (highest priority)
-  if (process.env.CONTEXT_PODS_TEMPLATES_PATH) {
-    return process.env.CONTEXT_PODS_TEMPLATES_PATH;
-  }
-
-  // Use robust path resolution with multiple fallback strategies
-  return getTemplatesPathRobust();
+  return resolveTemplatePath({
+    envVar: 'CONTEXT_PODS_TEMPLATES_PATH',
+  });
 }
 
 /**

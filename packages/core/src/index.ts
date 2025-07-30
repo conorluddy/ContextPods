@@ -19,3 +19,6 @@ export * from './template-engine.js';
 
 // Export template selector
 export * from './template-selector.js';
+
+// Export path resolution utilities
+export * from './path-resolution.js';
