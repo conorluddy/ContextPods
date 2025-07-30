@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/templates",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Template collection for Context-Pods MCP server generation",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,9 +18,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -b && npm run copy:templates",
-    "copy:templates": "cp -r ../../templates ./",
-    "clean": "rm -rf dist tsconfig.tsbuildinfo templates",
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest run --reporter=verbose --passWithNoTests",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
@@ -37,6 +36,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.0"
+    "@types/node": "^20.14.0",
+    "vitest": "^1.6.0"
   }
 }

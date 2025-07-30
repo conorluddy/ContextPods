@@ -126,7 +126,7 @@ describe('Template Generation Workflows', () => {
    * Test 2: Multi-language template selection
    */
   it('should handle multi-language template selection correctly', async () => {
-    const templatesDir = join(process.cwd(), '../../templates');
+    const templatesDir = join(process.cwd(), '../templates/templates');
 
     // Test language detection for various file types
     const testCases = [

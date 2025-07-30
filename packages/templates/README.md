@@ -37,4 +37,4 @@ Each template includes:
 
 ## Development
 
-Templates are stored in the root `/templates` directory and copied to this package during build.
+Templates are maintained directly in this package's `templates/` directory.
