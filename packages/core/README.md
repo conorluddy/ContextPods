@@ -1,6 +1,9 @@
 # @context-pods/core
 
-Core utilities and types for the Context-Pods MCP farm.
+Core utilities and types for the Context-Pods MCP (Model Context Protocol) development suite.
+
+[![npm version](https://badge.fury.io/js/@context-pods%2Fcore.svg)](https://www.npmjs.com/package/@context-pods/core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Installation
 
@@ -74,3 +77,23 @@ if (result.success) {
 ## API Reference
 
 See the TypeScript definitions for detailed API documentation.
+
+## Key Exports
+
+- **Error Classes**: `ConfigurationError`, `TemplateError`, `ValidationError`
+- **Logger**: Configurable logging with multiple levels
+- **Schemas**: Zod schemas for validation (`PodConfigSchema`, `TemplateManifestSchema`, etc.)
+- **Types**: TypeScript types for all MCP components
+- **Template Engine**: Template processing and variable substitution
+- **Template Selector**: Intelligent template selection based on context
+
+## Related Packages
+
+- [`@context-pods/cli`](https://www.npmjs.com/package/@context-pods/cli) - Command-line interface
+- [`@context-pods/create`](https://www.npmjs.com/package/@context-pods/create) - npx runner for quick starts
+- [`@context-pods/server`](https://www.npmjs.com/package/@context-pods/server) - MCP server implementation
+- [`@context-pods/testing`](https://www.npmjs.com/package/@context-pods/testing) - Testing framework
+
+## License
+
+MIT
