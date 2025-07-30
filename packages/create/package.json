@@ -1,0 +1,30 @@
+{
+  "name": "@context-pods/create",
+  "version": "0.1.3",
+  "description": "npx runner for Context-Pods MCP development suite",
+  "type": "module",
+  "bin": {
+    "create-context-pods": "./bin/create-context-pods.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "scripts": {
+    "test": "echo \"No tests for runner package\""
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "context-pods",
+    "npx",
+    "create"
+  ],
+  "author": "Conor Luddy",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
