@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@context-pods/core": "^0.0.1",
+    "@context-pods/core": "^0.0.2",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
