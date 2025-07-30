@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/server",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Core MCP server for Context-Pods toolkit",
   "type": "module",
   "main": "dist/index.js",
@@ -9,8 +9,7 @@
     "context-pods-server": "bin/server.js"
   },
   "scripts": {
-    "build": "tsc && npm run copy-templates",
-    "copy-templates": "rm -rf ./templates && cp -r ../../templates ./templates",
+    "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest run --reporter=verbose --passWithNoTests",
     "test:coverage": "vitest run --reporter=verbose --passWithNoTests --coverage",
@@ -21,6 +20,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@context-pods/core": "^0.1.4",
+    "@context-pods/templates": "^0.1.4",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
@@ -32,7 +32,6 @@
   },
   "files": [
     "dist",
-    "bin",
-    "templates"
+    "bin"
   ]
 }
