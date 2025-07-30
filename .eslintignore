@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Generated files
+generated/
+
+# Template files (these contain placeholders and shouldn't be linted)
+packages/templates/templates/

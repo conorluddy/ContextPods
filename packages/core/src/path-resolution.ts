@@ -8,6 +8,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync } from 'fs';
 import { homedir } from 'os';
+import { createRequire } from 'module';
 
 /**
  * Get the directory containing this module (works in both CJS and ESM)
@@ -93,9 +94,20 @@ export function getTemplatePaths(options: TemplatePathOptions = {}): string[] {
 
   if (!skipBundled) {
     // 2. Bundled templates (npm package distribution)
-    const moduleDir = getModuleDir();
-    const bundledPath = join(moduleDir, '../templates');
-    paths.push(bundledPath);
+    try {
+      // Create require function for ES modules
+      const require = createRequire(import.meta.url);
+      // Try to resolve @context-pods/templates package location
+      const templatesModulePath = require.resolve('@context-pods/templates/package.json');
+      const templatesPackageDir = dirname(templatesModulePath);
+      const templatesPath = join(templatesPackageDir, 'templates');
+      paths.push(templatesPath);
+    } catch {
+      // Fallback to old method if templates package not available
+      const moduleDir = getModuleDir();
+      const bundledPath = join(moduleDir, '../templates');
+      paths.push(bundledPath);
+    }
   }
 
   if (!skipUserHome) {
