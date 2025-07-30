@@ -199,10 +199,30 @@ describe('Template Path Resolution', () => {
   describe('NPM Package Distribution', () => {
     it('should prioritize bundled templates in npm package', () => {
       delete process.env.CONTEXT_PODS_TEMPLATES_PATH;
+
       vi.mocked(existsSync).mockImplementation((path) => {
         const strPath = String(path);
-        // Simulate bundled templates exist
-        return strPath.includes('templates') && !strPath.includes('home');
+
+        // For this test, we want to simulate an npm package environment where:
+        // 1. No package.json files exist (we're not in a development workspace)
+        // 2. Home directory templates do NOT exist
+        // 3. Only bundled templates exist
+
+        if (strPath.includes('package.json')) {
+          return false;
+        }
+
+        // Home directory templates should NOT exist for this test
+        if (strPath.includes('home')) {
+          return false;
+        }
+
+        // Any other templates path (bundled) exists
+        if (strPath.includes('templates')) {
+          return true;
+        }
+
+        return false;
       });
 
       const result = resolveTemplatePath();
