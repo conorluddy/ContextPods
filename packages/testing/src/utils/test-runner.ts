@@ -3,9 +3,10 @@
  */
 
 import { logger } from '@context-pods/core';
+
+import { MCPComplianceTestSuite } from '../protocol/compliance.js';
 import type { TestSuiteResult, WrapperTestConfig, TestRunResult } from '../types.js';
 import { TestStatus } from '../types.js';
-import { MCPComplianceTestSuite } from '../protocol/compliance.js';
 import { ScriptWrapperTester } from '../wrappers/wrapper-tester.js';
 
 /**
