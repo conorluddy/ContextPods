@@ -7,3 +7,4 @@ export { CreateMCPTool } from './create-mcp.js';
 export { WrapScriptTool } from './wrap-script.js';
 export { ListMCPsTool } from './list-mcps.js';
 export { ValidateMCPTool } from './validate-mcp.js';
+export { AnalyzeCodebaseTool } from './analyze-codebase.js';
