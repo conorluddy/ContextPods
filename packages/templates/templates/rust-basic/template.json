@@ -1,15 +1,15 @@
 {
-  "name": "python-basic",
-  "description": "Basic Python MCP server template (self-contained)",
+  "name": "rust-basic",
+  "description": "Basic Rust MCP server template with async support",
   "version": "1.0.0",
   "author": "Context-Pods Team",
-  "tags": ["python", "basic", "self-contained"],
-  "language": "python",
+  "tags": ["rust", "basic", "async"],
+  "language": "rust",
   "optimization": {
     "turboRepo": false,
     "hotReload": false,
     "sharedDependencies": false,
-    "buildCaching": false
+    "buildCaching": true
   },
   "variables": {
     "serverName": {
@@ -25,59 +25,59 @@
       "type": "string",
       "required": true
     },
-    "pythonVersion": {
-      "description": "Minimum Python version required",
+    "rustEdition": {
+      "description": "Rust edition to use",
       "type": "string",
       "required": false,
-      "default": "3.8",
+      "default": "2021",
       "validation": {
-        "options": ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        "options": ["2018", "2021", "2024"]
       }
     }
   },
   "files": [
     {
-      "path": "main.py",
-      "template": true,
-      "executable": true
-    },
-    {
-      "path": "requirements.txt",
+      "path": "Cargo.toml",
       "template": true
     },
     {
-      "path": "src/__init__.py",
-      "template": false
-    },
-    {
-      "path": "src/server.py",
+      "path": "src/main.rs",
       "template": true
     },
     {
-      "path": "src/tools.py",
+      "path": "src/server.rs",
       "template": true
     },
     {
-      "path": "src/resources.py",
+      "path": "src/tools.rs",
+      "template": true
+    },
+    {
+      "path": "src/resources.rs",
       "template": true
     },
     {
       "path": "README.md",
       "template": true
+    },
+    {
+      "path": ".gitignore",
+      "template": false
     }
   ],
   "scripts": {
-    "install": "pip install -r requirements.txt",
-    "dev": "python main.py",
-    "start": "python main.py",
-    "test": "python -m pytest tests/",
-    "lint": "python -m flake8 src/ main.py"
+    "build": "cargo build --release",
+    "dev": "cargo run",
+    "test": "cargo test",
+    "check": "cargo check",
+    "fmt": "cargo fmt",
+    "lint": "cargo clippy"
   },
   "mcpConfig": {
-    "defaultCommand": "python",
-    "defaultArgs": ["main.py"],
+    "defaultCommand": "./target/release/{{serverName}}",
+    "defaultArgs": [],
     "defaultEnv": {
-      "PYTHONPATH": "."
+      "RUST_LOG": "info"
     },
     "generateByDefault": true
   }

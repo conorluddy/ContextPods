@@ -1,0 +1,87 @@
+{
+  "name": "shell-wrapper",
+  "description": "Wrapper for exposing shell scripts and CLI tools as MCP servers",
+  "version": "1.0.0",
+  "author": "Context-Pods Team",
+  "tags": ["shell", "bash", "cli", "wrapper"],
+  "language": "shell",
+  "optimization": {
+    "turboRepo": false,
+    "hotReload": false,
+    "sharedDependencies": false,
+    "buildCaching": false
+  },
+  "variables": {
+    "serverName": {
+      "description": "Name of the MCP server",
+      "type": "string",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-_]+$"
+      }
+    },
+    "serverDescription": {
+      "description": "Description of the MCP server",
+      "type": "string",
+      "required": true
+    },
+    "shellType": {
+      "description": "Type of shell to use",
+      "type": "string",
+      "required": false,
+      "default": "bash",
+      "validation": {
+        "options": ["bash", "sh", "zsh"]
+      }
+    },
+    "includeExampleScripts": {
+      "description": "Include example shell scripts",
+      "type": "boolean",
+      "required": false,
+      "default": true
+    }
+  },
+  "files": [
+    {
+      "path": "mcp-server.sh",
+      "template": true,
+      "executable": true
+    },
+    {
+      "path": "scripts/hello.sh",
+      "template": true,
+      "executable": true
+    },
+    {
+      "path": "scripts/system-info.sh",
+      "template": true,
+      "executable": true
+    },
+    {
+      "path": "scripts/file-ops.sh",
+      "template": true,
+      "executable": true
+    },
+    {
+      "path": "README.md",
+      "template": true
+    },
+    {
+      "path": ".gitignore",
+      "template": false
+    }
+  ],
+  "scripts": {
+    "start": "./mcp-server.sh",
+    "test": "bash -n mcp-server.sh && echo 'Syntax check passed'",
+    "lint": "shellcheck mcp-server.sh scripts/*.sh"
+  },
+  "mcpConfig": {
+    "defaultCommand": "./mcp-server.sh",
+    "defaultArgs": [],
+    "defaultEnv": {
+      "MCP_SHELL_TYPE": "{{shellType}}"
+    },
+    "generateByDefault": true
+  }
+}
