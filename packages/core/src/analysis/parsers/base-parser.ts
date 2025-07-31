@@ -39,6 +39,7 @@ export abstract class BaseParser {
   /**
    * Score a function for MCP suitability
    */
+  // eslint-disable-next-line complexity
   protected scoreFunctionForMCP(func: FunctionMetadata, patterns: DetectedPattern[]): number {
     let score = 0;
 
@@ -113,7 +114,7 @@ export abstract class BaseParser {
   protected categorizeFunctionFromPatterns(patterns: DetectedPattern[]): OpportunityCategory {
     const patternScores = patterns.reduce(
       (acc, pattern) => {
-        acc[pattern.type] = (acc[pattern.type] || 0) + pattern.confidence;
+        acc[pattern.type] = (acc[pattern.type] ?? 0) + pattern.confidence;
         return acc;
       },
       {} as Record<string, number>,
@@ -142,6 +143,7 @@ export abstract class BaseParser {
   /**
    * Generate MCP opportunity from function and patterns
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   protected async generateOpportunity(
     func: FunctionMetadata,
     patterns: DetectedPattern[],
@@ -194,14 +196,14 @@ export abstract class BaseParser {
       language: this.language,
       score,
       category,
-      description: func.documentation || `${category} function from ${func.name}`,
+      description: func.documentation ?? `${category} function from ${func.name}`,
       suggestedTemplate,
       reasoning,
       implementation: {
         toolName,
-        toolDescription: func.documentation || `Execute ${func.name} function`,
+        toolDescription: func.documentation ?? `Execute ${func.name} function`,
         inputSchema: this.generateInputSchema(func),
-        outputDescription: func.returnType || 'Function execution result',
+        outputDescription: func.returnType ?? 'Function execution result',
         dependencies: this.extractDependencies(patterns),
         complexity: this.getComplexityLevel(func.complexity.cyclomaticComplexity),
         estimatedEffort: this.getEffortLevel(score, func.complexity.cyclomaticComplexity),

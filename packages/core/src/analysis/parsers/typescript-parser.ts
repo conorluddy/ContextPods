@@ -25,6 +25,7 @@ export class TypeScriptParser extends BaseParser {
   /**
    * Parse TypeScript/JavaScript file and extract function metadata
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async parseFile(filePath: string, content: string): Promise<FunctionMetadata[]> {
     try {
       const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
@@ -86,6 +87,7 @@ export class TypeScriptParser extends BaseParser {
   /**
    * Detect patterns in TypeScript/JavaScript code
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async detectPatterns(
     content: string,
     _functions: FunctionMetadata[],
@@ -182,9 +184,28 @@ export class TypeScriptParser extends BaseParser {
     // External dependency patterns
     const depMatches = content.match(/import.*from\s+['"]([^'"]+)['"]/g);
     if (depMatches) {
-      const externalDeps = depMatches.filter(
-        (dep) => !dep.includes('./') && !dep.includes('../') && !dep.includes('node:'),
-      );
+      const builtinModules = [
+        'fs',
+        'path',
+        'os',
+        'crypto',
+        'util',
+        'stream',
+        'events',
+        'buffer',
+        'url',
+        'querystring',
+        'http',
+        'https',
+      ];
+      const externalDeps = depMatches.filter((dep) => {
+        const isRelative = dep.includes('./') || dep.includes('../');
+        const isNodeProtocol = dep.includes('node:');
+        const isBuiltin = builtinModules.some(
+          (mod) => dep.includes(`'${mod}'`) || dep.includes(`"${mod}"`),
+        );
+        return !isRelative && !isNodeProtocol && !isBuiltin;
+      });
 
       if (externalDeps.length > 0) {
         patterns.push({
@@ -235,7 +256,7 @@ export class TypeScriptParser extends BaseParser {
       node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.ExportKeyword) || false;
 
     // Check if async
-    const isAsync = node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword) || false;
+    const isAsync = node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
 
     // Get return type
     const returnType = node.type ? node.type.getText(sourceFile) : undefined;
@@ -294,7 +315,7 @@ export class TypeScriptParser extends BaseParser {
     });
 
     // Check if async
-    const isAsync = node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword) || false;
+    const isAsync = node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
 
     // Get return type
     const returnType = node.type ? node.type.getText(sourceFile) : undefined;
@@ -353,7 +374,7 @@ export class TypeScriptParser extends BaseParser {
     const isExported = !node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.PrivateKeyword);
 
     // Check if async
-    const isAsync = node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword) || false;
+    const isAsync = node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
 
     // Get return type
     const returnType = node.type ? node.type.getText(sourceFile) : undefined;
@@ -388,7 +409,7 @@ export class TypeScriptParser extends BaseParser {
    * Extract function signature
    */
   private extractSignature(node: ts.FunctionDeclaration, sourceFile: ts.SourceFile): string {
-    const name = node.name?.text || 'anonymous';
+    const name = node.name?.text ?? 'anonymous';
     const params = node.parameters.map((p) => p.getText(sourceFile)).join(', ');
     const returnType = node.type ? `: ${node.type.getText(sourceFile)}` : '';
     const async = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.AsyncKeyword)

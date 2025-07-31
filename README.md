@@ -44,13 +44,15 @@ The Meta-MCP Server exposes Context-Pods functionality through the MCP protocol 
     "create-mcp", // Generate servers from descriptions
     "wrap-script", // Convert scripts to MCP servers
     "list-mcps", // Manage existing servers
-    "validate-mcp" // Validate MCP compliance
+    "validate-mcp", // Validate MCP compliance
+    "analyze-codebase" // AI-powered MCP opportunity detection
   ]
 }
 ```
 
 ### 🛠️ Advanced Features
 
+- **AI-Powered Analysis** - Automatically identify MCP opportunities in existing codebases
 - **TurboRepo Integration** - Optimized builds and caching
 - **Hot Reloading** - Live development with automatic restarts
 - **Comprehensive Testing** - Built-in MCP protocol compliance tests with 95%+ coverage
@@ -104,6 +106,108 @@ Full-featured TypeScript server with utilities, validation, and testing:
 context-pods generate typescript-advanced --name my-advanced-server
 ```
 
+## 🤖 AI-Powered Codebase Analysis
+
+Context-Pods includes an intelligent codebase analyzer that identifies functions in your existing code that would make excellent MCP tools. This feature helps you discover MCP opportunities and provides implementation guidance.
+
+### How It Works
+
+The analyzer uses a multi-phase approach:
+
+1. **File Discovery** - Recursively scans your codebase with intelligent filtering
+2. **AST Parsing** - Extracts function metadata using language-specific parsers
+3. **Pattern Detection** - Identifies MCP-suitable patterns (API calls, file operations, etc.)
+4. **Scoring Algorithm** - Ranks functions using a sophisticated scoring system (0-100)
+5. **Template Matching** - Suggests the best template for each opportunity
+
+### Supported Languages
+
+- **TypeScript/JavaScript** - Full AST analysis with type information
+- **Python** - AST-based function extraction (coming soon)
+- **Rust/Go** - Pattern-based analysis (planned)
+- **Shell** - Script pattern detection (planned)
+
+### Usage Examples
+
+```bash
+# Basic analysis
+context-pods analyze ./src
+
+# With filtering and output options
+context-pods analyze ./src --min-score 80 --format summary --max-results 5
+
+# Language-specific analysis
+context-pods analyze ./src --languages typescript,python
+
+# Include test files
+context-pods analyze ./src --include-tests
+```
+
+### Via Meta-MCP Server
+
+```json
+{
+  "tool": "analyze-codebase",
+  "arguments": {
+    "path": "./src",
+    "minScore": 70,
+    "outputFormat": "detailed",
+    "maxResults": 10
+  }
+}
+```
+
+### What It Detects
+
+The analyzer identifies functions with:
+
+- **API Integration Patterns** - HTTP clients, REST calls, GraphQL queries
+- **File Processing Operations** - File I/O, data transformation, parsing
+- **Database Interactions** - SQL queries, ORM operations, data validation
+- **Utility Functions** - Data validation, formatting, conversion
+- **External Service Integrations** - Third-party API usage
+
+### Scoring Factors
+
+Functions are scored based on:
+
+- **Complexity** - Sweet spot is medium complexity (3-15 cyclomatic complexity)
+- **Accessibility** - Exported functions score higher
+- **Documentation** - Well-documented functions are preferred
+- **Parameters** - Clear input parameters (1-5 params optimal)
+- **Patterns** - Detected MCP-suitable patterns boost scores
+- **Async Nature** - Async functions often perform useful I/O operations
+
+### Sample Output
+
+```
+🎯 Top MCP Opportunities Found (Score: 85+)
+
+📁 src/api/weather.ts
+└── fetchWeatherData (Score: 92/100)
+    ├── Category: API Integration
+    ├── Template: typescript-advanced
+    ├── Complexity: Medium (8 cyclomatic)
+    ├── Patterns: HTTP calls, JSON parsing
+    └── Reasoning:
+        • Exported async function with clear parameters
+        • Makes external API calls (confidence: 0.9)
+        • Well-documented with TypeScript types
+        • Optimal complexity for MCP tool
+
+📁 src/utils/validator.ts
+└── validateUserInput (Score: 88/100)
+    ├── Category: Validation
+    ├── Template: basic
+    ├── Complexity: Low (4 cyclomatic)
+    ├── Patterns: Zod validation, error handling
+    └── Implementation Guidance:
+        • Tool Name: validate-user-input
+        • Input Schema: { data: object, rules: string[] }
+        • Dependencies: zod, validator
+        • Estimated Effort: Low
+```
+
 ## 🔧 CLI Commands
 
 ```bash
@@ -127,6 +231,9 @@ context-pods test
 
 # Validate MCP compliance
 context-pods validate <path>
+
+# Analyze codebase for MCP opportunities
+context-pods analyze <path>
 ```
 
 ## 🏗️ Architecture
@@ -136,7 +243,7 @@ Context-Pods uses a monorepo structure powered by TurboRepo:
 ```
 context-pods/
 ├── packages/
-│   ├── core/        # Core utilities and schemas
+│   ├── core/        # Core utilities, schemas, and codebase analysis
 │   ├── cli/         # Command-line interface
 │   ├── templates/   # Server templates
 │   ├── testing/     # MCP testing framework
