@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/create",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "npx runner for Context-Pods MCP development suite",
   "type": "module",
   "bin": {
