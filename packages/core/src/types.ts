@@ -236,3 +236,174 @@ export interface TemplateEngine {
    */
   detectLanguage(filePath: string, content?: string): Promise<TemplateLanguage | null>;
 }
+
+/**
+ * Codebase Analysis Types
+ */
+
+/**
+ * Analysis configuration options
+ */
+export interface AnalysisConfig {
+  maxFileSize: number;
+  excludePatterns: string[];
+  includeTests: boolean;
+  languageSettings: Record<TemplateLanguage, LanguageConfig>;
+}
+
+/**
+ * Language-specific configuration
+ */
+export interface LanguageConfig {
+  extensions: string[];
+  excludePatterns: string[];
+  parsingStrategy: 'ast' | 'regex' | 'hybrid';
+  complexity: {
+    maxCyclomaticComplexity: number;
+    maxLinesOfCode: number;
+  };
+}
+
+/**
+ * Function metadata extracted during analysis
+ */
+export interface FunctionMetadata {
+  name: string;
+  signature: string;
+  parameters: FunctionParameter[];
+  returnType?: string;
+  complexity: {
+    cyclomaticComplexity: number;
+    linesOfCode: number;
+    dependencies: number;
+  };
+  location: {
+    filePath: string;
+    startLine: number;
+    endLine: number;
+  };
+  documentation?: string;
+  isExported: boolean;
+  isAsync: boolean;
+}
+
+/**
+ * Function parameter metadata
+ */
+export interface FunctionParameter {
+  name: string;
+  type?: string;
+  optional: boolean;
+  defaultValue?: string;
+}
+
+/**
+ * MCP opportunity category
+ */
+export type OpportunityCategory =
+  | 'api-integration'
+  | 'data-transformation'
+  | 'file-processing'
+  | 'validation'
+  | 'utility'
+  | 'workflow-automation';
+
+/**
+ * MCP opportunity detected in codebase
+ */
+export interface MCPOpportunity {
+  id: string;
+  functionName: string;
+  filePath: string;
+  language: TemplateLanguage;
+  score: number;
+  category: OpportunityCategory;
+  description: string;
+  suggestedTemplate: string;
+  reasoning: string[];
+  implementation: {
+    toolName: string;
+    toolDescription: string;
+    inputSchema: Record<string, unknown>;
+    outputDescription: string;
+    dependencies: string[];
+    complexity: 'low' | 'medium' | 'high';
+    estimatedEffort: 'low' | 'medium' | 'high';
+  };
+  function: FunctionMetadata;
+  patterns: DetectedPattern[];
+}
+
+/**
+ * Pattern detected in code
+ */
+export interface DetectedPattern {
+  type:
+    | 'api-call'
+    | 'file-operation'
+    | 'database-query'
+    | 'external-dependency'
+    | 'validation-logic';
+  confidence: number;
+  description: string;
+  evidence: string[];
+}
+
+/**
+ * Template recommendation
+ */
+export interface TemplateRecommendation {
+  templateName: string;
+  confidence: number;
+  reasoning: string[];
+  estimatedVars: Record<string, unknown>;
+}
+
+/**
+ * Analysis summary statistics
+ */
+export interface AnalysisSummary {
+  totalFiles: number;
+  analyzedFiles: number;
+  skippedFiles: number;
+  languageBreakdown: Record<TemplateLanguage, number>;
+  analysisTime: number;
+  errors: string[];
+  warnings: string[];
+}
+
+/**
+ * Complete codebase analysis result
+ */
+export interface CodebaseAnalysisResult {
+  opportunities: MCPOpportunity[];
+  summary: AnalysisSummary;
+  recommendations: TemplateRecommendation[];
+  config: AnalysisConfig;
+  timestamp: number;
+}
+
+/**
+ * Codebase analyzer interface
+ */
+export interface CodebaseAnalyzer {
+  /**
+   * Analyze a codebase directory
+   */
+  analyze(path: string, config: Partial<AnalysisConfig>): Promise<CodebaseAnalysisResult>;
+
+  /**
+   * Get default configuration
+   */
+  getDefaultConfig(): AnalysisConfig;
+
+  /**
+   * Validate analysis path
+   */
+  validatePath(path: string): Promise<boolean>;
+
+  /**
+   * Get supported languages
+   */
+  getSupportedLanguages(): TemplateLanguage[];
+}

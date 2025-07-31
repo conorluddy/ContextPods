@@ -22,3 +22,6 @@ export * from './template-selector.js';
 
 // Export path resolution utilities
 export * from './path-resolution.js';
+
+// Export analysis utilities
+export * from './analysis/index.js';

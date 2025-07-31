@@ -5,6 +5,7 @@
  * It provides tools for creating, managing, and distributing MCP servers.
  */
 
+import { logger } from '@context-pods/core';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -13,10 +14,16 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { logger } from '@context-pods/core';
+
 import { CONFIG } from './config/index.js';
-import { CreateMCPTool, WrapScriptTool, ListMCPsTool, ValidateMCPTool } from './tools/index.js';
 import { getRegistryOperations } from './registry/index.js';
+import {
+  CreateMCPTool,
+  WrapScriptTool,
+  ListMCPsTool,
+  ValidateMCPTool,
+  AnalyzeCodebaseTool,
+} from './tools/index.js';
 
 /**
  * Initialize tool instances
@@ -25,6 +32,7 @@ const createMCPTool = new CreateMCPTool();
 const wrapScriptTool = new WrapScriptTool();
 const listMCPsTool = new ListMCPsTool();
 const validateMCPTool = new ValidateMCPTool();
+const analyzeCodebaseTool = new AnalyzeCodebaseTool();
 
 /**
  * Create MCP server instance
@@ -272,6 +280,82 @@ and suggestions for fixing any compliance issues found.`,
           required: ['mcpPath'],
         },
       },
+      {
+        name: 'analyze-codebase',
+        description: `Analyze codebase to identify functions suitable for MCP tool conversion.
+
+This tool scans source code files to identify functions that would make good MCP tools,
+providing scored opportunities with implementation guidance and template suggestions.
+
+Supported Languages:
+- TypeScript/JavaScript: Full AST analysis with type information
+- Python: AST-based function extraction and analysis (planned)
+- Rust/Go/Java: Pattern-based analysis with structure detection (planned)
+- Shell: Script and function pattern detection (planned)
+
+Analysis Features:
+- Function signature extraction and complexity scoring
+- API integration detection (HTTP clients, database calls)
+- Utility function identification (data transformation, validation)
+- Template matching with implementation guidance
+- Security and best practice recommendations
+
+Output Formats:
+- detailed: Comprehensive analysis with reasoning and recommendations
+- summary: Condensed overview of top opportunities
+- json: Machine-readable format for programmatic processing
+
+Example Usage:
+- Analyze TypeScript project: {"path": "./src", "languages": ["typescript"]}
+- Find high-value opportunities: {"path": "./src", "minScore": 80}
+- Quick summary: {"path": "./src", "outputFormat": "summary", "maxResults": 5}`,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            path: {
+              type: 'string',
+              description: 'Path to codebase directory to analyze',
+            },
+            languages: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Specific languages to analyze (optional)',
+              enum: ['typescript', 'javascript', 'python', 'rust', 'shell', 'go', 'java'],
+            },
+            excludePatterns: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Additional glob patterns to exclude from analysis',
+            },
+            minScore: {
+              type: 'number',
+              description: 'Minimum opportunity score (0-100, default: 50)',
+              minimum: 0,
+              maximum: 100,
+              default: 50,
+            },
+            includeTests: {
+              type: 'boolean',
+              description: 'Include test files in analysis (default: false)',
+              default: false,
+            },
+            outputFormat: {
+              type: 'string',
+              enum: ['detailed', 'summary', 'json'],
+              description: 'Output format (default: detailed)',
+              default: 'detailed',
+            },
+            maxResults: {
+              type: 'number',
+              description: 'Maximum number of opportunities to return (default: 10)',
+              minimum: 1,
+              maximum: 100,
+              default: 10,
+            },
+          },
+          required: ['path'],
+        },
+      },
     ],
   };
 });
@@ -295,6 +379,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'validate-mcp':
         return await validateMCPTool.safeExecute(args);
+
+      case 'analyze-codebase':
+        return await analyzeCodebaseTool.safeExecute(args);
 
       default:
         throw new Error(`Unknown tool: ${name}`);
