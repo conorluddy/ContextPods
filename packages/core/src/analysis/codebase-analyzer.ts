@@ -311,7 +311,7 @@ export class DefaultCodebaseAnalyzer implements CodebaseAnalyzer {
 
       // Get appropriate parser
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const parser = this.getParser(language);
+      const parser = await this.getParser(language);
       if (!parser) {
         logger.warn(`No parser available for language: ${language}`);
         return [];
@@ -380,14 +380,18 @@ export class DefaultCodebaseAnalyzer implements CodebaseAnalyzer {
    * Get appropriate parser for language
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getParser(language: TemplateLanguage): any {
+  private async getParser(language: TemplateLanguage): Promise<any> {
     // For now, only TypeScript parser is implemented
     if (language === TemplateLanguage.TYPESCRIPT || language === TemplateLanguage.NODEJS) {
-      // Lazy import to avoid circular dependencies
-      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-      const { TypeScriptParser } = require('./parsers/typescript-parser.js');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-      return new TypeScriptParser(language);
+      try {
+        // Dynamic import to avoid circular dependencies
+        const module = await import('./parsers/typescript-parser.js');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+        return new module.TypeScriptParser(language);
+      } catch (error) {
+        logger.error(`Failed to load TypeScript parser: ${String(error)}`);
+        return null;
+      }
     }
 
     // TODO: Add other language parsers
