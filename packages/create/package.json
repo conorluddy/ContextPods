@@ -10,7 +10,9 @@
     "bin"
   ],
   "scripts": {
-    "test": "echo \"No tests for runner package\""
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "mcp",
