@@ -1,6 +1,6 @@
 {
   "name": "@context-pods/testing",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Comprehensive testing and validation framework for Context-Pods MCP servers",
   "type": "module",
   "main": "./dist/index.js",
