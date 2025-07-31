@@ -203,7 +203,7 @@ await harness.testTool('my-tool', { input: 'test' });
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Not open for contributions yet - I want to get this a bit more bulletproof first.
 
 ### Development Setup
 
