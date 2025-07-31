@@ -17,7 +17,7 @@
       "type": "string",
       "required": true,
       "validation": {
-        "pattern": "^[a-z0-9_]+$"
+        "pattern": "^[a-z0-9-_]+$"
       }
     },
     "serverDescription": {
