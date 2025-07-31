@@ -1,0 +1,84 @@
+{
+  "name": "rust-basic",
+  "description": "Basic Rust MCP server template with async support",
+  "version": "1.0.0",
+  "author": "Context-Pods Team",
+  "tags": ["rust", "basic", "async"],
+  "language": "rust",
+  "optimization": {
+    "turboRepo": false,
+    "hotReload": false,
+    "sharedDependencies": false,
+    "buildCaching": true
+  },
+  "variables": {
+    "serverName": {
+      "description": "Name of the MCP server",
+      "type": "string",
+      "required": true,
+      "validation": {
+        "pattern": "^[a-z0-9-_]+$"
+      }
+    },
+    "serverDescription": {
+      "description": "Description of the MCP server",
+      "type": "string",
+      "required": true
+    },
+    "rustEdition": {
+      "description": "Rust edition to use",
+      "type": "string",
+      "required": false,
+      "default": "2021",
+      "validation": {
+        "options": ["2018", "2021", "2024"]
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "Cargo.toml",
+      "template": true
+    },
+    {
+      "path": "src/main.rs",
+      "template": true
+    },
+    {
+      "path": "src/server.rs",
+      "template": true
+    },
+    {
+      "path": "src/tools.rs",
+      "template": true
+    },
+    {
+      "path": "src/resources.rs",
+      "template": true
+    },
+    {
+      "path": "README.md",
+      "template": true
+    },
+    {
+      "path": ".gitignore",
+      "template": false
+    }
+  ],
+  "scripts": {
+    "build": "cargo build --release",
+    "dev": "cargo run",
+    "test": "cargo test",
+    "check": "cargo check",
+    "fmt": "cargo fmt",
+    "lint": "cargo clippy"
+  },
+  "mcpConfig": {
+    "defaultCommand": "./target/release/{{serverName}}",
+    "defaultArgs": [],
+    "defaultEnv": {
+      "RUST_LOG": "info"
+    },
+    "generateByDefault": true
+  }
+}
