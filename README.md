@@ -15,10 +15,10 @@
 
 ```bash
 # Install and run Context-Pods CLI
-npx @context-pods/create generate
+npx @context-pods/create
 
 # Or install globally
-npm install -g @context-pods/create
+npm install -g @context-pods/cli
 context-pods generate
 ```
 
@@ -207,19 +207,19 @@ Context-Pods maintains comprehensive test coverage across all packages:
 
 ### Coverage by Package
 
-| Package | Coverage | Tests | Description |
-|---------|----------|-------|-------------|
-| `@context-pods/server` | 95%+ | 287+ | MCP server tools, registry, and protocol handling |
-| `@context-pods/cli` | 90%+ | 150+ | CLI commands, caching, and output formatting |
-| `@context-pods/core` | 90%+ | 75+ | Template engine, language detection, and utilities |
-| `@context-pods/testing` | 95%+ | 45+ | MCP protocol compliance and script wrapper testing |
-| `@context-pods/templates` | 85%+ | 25+ | Template validation and structure verification |
-| `@context-pods/create` | 75%+ | 30+ | NPX runner and package installation |
+| Package                   | Coverage | Tests | Description                                        |
+| ------------------------- | -------- | ----- | -------------------------------------------------- |
+| `@context-pods/server`    | 95%+     | 287+  | MCP server tools, registry, and protocol handling  |
+| `@context-pods/cli`       | 90%+     | 150+  | CLI commands, caching, and output formatting       |
+| `@context-pods/core`      | 90%+     | 75+   | Template engine, language detection, and utilities |
+| `@context-pods/testing`   | 95%+     | 45+   | MCP protocol compliance and script wrapper testing |
+| `@context-pods/templates` | 85%+     | 25+   | Template validation and structure verification     |
+| `@context-pods/create`    | 75%+     | 30+   | NPX runner and package installation                |
 
 ### Test Categories
 
 - **Unit Tests** - Individual function and class testing
-- **Integration Tests** - End-to-end workflow validation  
+- **Integration Tests** - End-to-end workflow validation
 - **Protocol Compliance** - MCP specification adherence
 - **Template Validation** - Generated code quality assurance
 - **Error Handling** - Resilience and recovery testing
@@ -250,7 +250,7 @@ npm run test:e2e
 
 ## 🤝 Contributing
 
-Not open for contributions yet - I want to get this a bit more bulletproof first.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
 
 ### Development Setup
 
