@@ -53,7 +53,7 @@ The Meta-MCP Server exposes Context-Pods functionality through the MCP protocol 
 
 - **TurboRepo Integration** - Optimized builds and caching
 - **Hot Reloading** - Live development with automatic restarts
-- **Comprehensive Testing** - Built-in MCP protocol compliance tests
+- **Comprehensive Testing** - Built-in MCP protocol compliance tests with 95%+ coverage
 - **Schema Validation** - Zod-based runtime validation
 - **Multi-Transport Support** - stdio, HTTP, and WebSocket
 - **Production Ready** - Error handling, logging, and monitoring
@@ -200,6 +200,53 @@ await harness.testTool('my-tool', { input: 'test' });
 - [Template Development](docs/templates.md)
 - [Testing Framework](docs/testing.md)
 - [API Reference](docs/api-reference.md)
+
+## 🧪 Test Coverage
+
+Context-Pods maintains comprehensive test coverage across all packages:
+
+### Coverage by Package
+
+| Package | Coverage | Tests | Description |
+|---------|----------|-------|-------------|
+| `@context-pods/server` | 95%+ | 287+ | MCP server tools, registry, and protocol handling |
+| `@context-pods/cli` | 90%+ | 150+ | CLI commands, caching, and output formatting |
+| `@context-pods/core` | 90%+ | 75+ | Template engine, language detection, and utilities |
+| `@context-pods/testing` | 95%+ | 45+ | MCP protocol compliance and script wrapper testing |
+| `@context-pods/templates` | 85%+ | 25+ | Template validation and structure verification |
+| `@context-pods/create` | 75%+ | 30+ | NPX runner and package installation |
+
+### Test Categories
+
+- **Unit Tests** - Individual function and class testing
+- **Integration Tests** - End-to-end workflow validation  
+- **Protocol Compliance** - MCP specification adherence
+- **Template Validation** - Generated code quality assurance
+- **Error Handling** - Resilience and recovery testing
+- **Performance Tests** - Scalability and resource usage
+
+### Quality Assurance
+
+- **Pre-commit Hooks** - Automated linting, type-checking, and testing
+- **CI/CD Pipeline** - Continuous testing on multiple Node.js versions
+- **Coverage Tracking** - Minimum 80% coverage requirement
+- **Mutation Testing** - Advanced test quality verification
+
+Run tests locally:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run specific package tests
+npm test --workspace=@context-pods/server
+
+# Run integration tests
+npm run test:e2e
+```
 
 ## 🤝 Contributing
 

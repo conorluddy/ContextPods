@@ -1,0 +1,726 @@
+/**
+ * Unit tests for ValidateMCPTool
+ * Tests the functionality of validating MCP servers for compliance and quality
+ */
+
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { join } from 'path';
+import { promises as fs } from 'fs';
+import { ValidateMCPTool } from '../../../src/tools/validate-mcp.js';
+import { getRegistryOperations } from '../../../src/registry/index.js';
+
+// Mock all dependencies
+vi.mock('fs', () => ({
+  promises: {
+    stat: vi.fn(),
+    readdir: vi.fn(),
+    readFile: vi.fn(),
+    access: vi.fn(),
+  },
+}));
+
+vi.mock('../../../src/registry/index.js', () => ({
+  getRegistryOperations: vi.fn(),
+}));
+
+describe('ValidateMCPTool', () => {
+  let validateMCPTool: ValidateMCPTool;
+  let mockFs: {
+    stat: Mock;
+    readdir: Mock;
+    readFile: Mock;
+    access: Mock;
+  };
+  let mockRegistry: {
+    listServers: Mock;
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Create mock fs
+    mockFs = {
+      stat: vi.mocked(fs.stat),
+      readdir: vi.mocked(fs.readdir),
+      readFile: vi.mocked(fs.readFile),
+      access: vi.mocked(fs.access),
+    };
+
+    // Create mock registry
+    mockRegistry = {
+      listServers: vi.fn(),
+    };
+
+    vi.mocked(getRegistryOperations).mockResolvedValue(mockRegistry as any);
+
+    // Set up default mock returns
+    mockFs.stat.mockResolvedValue({ isDirectory: () => true } as any);
+    mockFs.readdir.mockResolvedValue(['package.json', 'src', 'index.ts']);
+    mockFs.readFile.mockResolvedValue('{}');
+    mockFs.access.mockResolvedValue(undefined);
+    mockRegistry.listServers.mockResolvedValue([]);
+
+    // Create tool instance
+    validateMCPTool = new ValidateMCPTool();
+  });
+
+  describe('Argument Validation', () => {
+    it('should validate required mcpPath argument', async () => {
+      mockFs.stat.mockRejectedValue(new Error('Directory not found'));
+
+      const result = await validateMCPTool.safeExecute({});
+      expect(result.content[0].text).toContain('Missing required argument: mcpPath');
+    });
+
+    it('should validate mcpPath is not empty', async () => {
+      mockFs.stat.mockRejectedValue(new Error('Directory not found'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '' });
+      expect(result.content[0].text).toContain('must be at least 1 characters long');
+    });
+
+    it('should check if mcpPath exists', async () => {
+      mockFs.stat.mockRejectedValue(new Error('ENOENT: no such file or directory'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/nonexistent/path' });
+      expect(result.content[0].text).toContain('MCP directory not found: /nonexistent/path');
+    });
+
+    it('should check if mcpPath is a directory', async () => {
+      mockFs.stat.mockResolvedValue({ isDirectory: () => false } as any);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/path/to/file.txt' });
+      expect(result.content[0].text).toContain('MCP path must point to a directory');
+    });
+
+    it('should accept valid directory path', async () => {
+      mockFs.stat.mockResolvedValue({ isDirectory: () => true } as any);
+      mockFs.readdir.mockResolvedValue(['package.json', 'index.js']);
+      mockFs.readFile
+        .mockResolvedValueOnce(JSON.stringify({
+          name: 'test-server',
+          version: '1.0.0',
+          main: 'index.js',
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }))
+        .mockResolvedValueOnce(`
+          import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+          const server = new Server({ name: 'test' }, { capabilities: {} });
+          server.connect(new StdioServerTransport());
+          server.setRequestHandler(ListToolsRequestSchema, async () => {});
+        `);
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/valid/path' });
+      expect(result.content[0].text).toContain('Validation Status: VALID');
+    });
+  });
+
+  describe('Basic Structure Validation', () => {
+    it('should detect package.json presence', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json', 'index.js']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Has package.json: Yes');
+    });
+
+    it('should detect main file presence', async () => {
+      mockFs.readdir.mockResolvedValue(['index.ts', 'src']);
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Has main file: Yes');
+    });
+
+    it('should error when no recognizable structure found', async () => {
+      mockFs.readdir.mockResolvedValue(['README.md', 'docs']);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('No recognizable MCP server structure found');
+    });
+
+    it('should warn about missing src directory', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json', 'index.js']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('No "src" directory found');
+    });
+
+    it('should warn about missing dist directory when src exists', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json', 'src']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('No "dist" directory found');
+    });
+  });
+
+  describe('Package.json Validation', () => {
+    it('should validate package.json structure', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Name: test-server');
+      expect(result.content[0].text).toContain('Version: 1.0.0');
+    });
+
+    it('should error on missing name field', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        version: '1.0.0',
+        main: 'index.js',
+      }));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('package.json is missing "name" field');
+    });
+
+    it('should error on missing version field', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        main: 'index.js',
+      }));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('package.json is missing "version" field');
+    });
+
+    it('should error on missing entry point', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+      }));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('package.json is missing entry point');
+    });
+
+    it('should error on missing MCP SDK dependency', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: {},
+      }));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Missing dependency: @modelcontextprotocol/sdk');
+    });
+
+    it('should detect language from dependencies', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        devDependencies: { typescript: '^5.0.0' },
+        scripts: { build: 'tsc' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Language: typescript');
+    });
+
+    it('should warn about missing build script', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('No build script found in package.json');
+    });
+
+    it('should warn about missing type field', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Consider setting "type" field in package.json');
+    });
+
+    it('should handle invalid JSON in package.json', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue('{ invalid json }');
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('package.json contains invalid JSON');
+    });
+  });
+
+  describe('Main File Validation', () => {
+    it('should find and validate main file', async () => {
+      mockFs.readdir.mockResolvedValue(['index.ts']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+        const server = new Server({ name: 'test' }, { capabilities: {} });
+        server.setRequestHandler(ListToolsRequestSchema, async () => {});
+      `);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Validation Status: VALID');
+    });
+
+    it('should error when no main file found', async () => {
+      mockFs.readdir.mockResolvedValue(['README.md']);
+      mockFs.access.mockRejectedValue(new Error('File not found'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('No main entry file found');
+    });
+
+    it('should error when main file has no MCP import', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        console.log('Hello world');
+      `);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Main file does not import MCP SDK');
+    });
+
+    it('should error when main file has no server creation', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+        console.log('No server created');
+      `);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Main file does not appear to create an MCP server');
+    });
+
+    it('should warn about missing transport setup', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+        const server = new Server({ name: 'test' }, { capabilities: {} });
+      `);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Main file may be missing transport setup');
+    });
+
+    it('should warn about missing request handlers', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server, StdioServerTransport } from '@modelcontextprotocol/sdk/server/index.js';
+        const server = new Server({ name: 'test' }, { capabilities: {} });
+        const transport = new StdioServerTransport();
+      `);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Main file may be missing request handlers');
+    });
+  });
+
+  describe('Registry Status Validation', () => {
+    it('should check registry status when enabled', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+      
+      mockRegistry.listServers.mockResolvedValue([
+        {
+          id: 'server-1',
+          name: 'test-server',
+          path: '/test/path',
+          status: 'ready',
+          metadata: {},
+        },
+      ]);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkRegistry: true,
+      });
+      
+      expect(result.content[0].text).toContain('In registry: Yes');
+      expect(result.content[0].text).toContain('Registry status: ready');
+    });
+
+    it('should warn when server not in registry', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+      mockRegistry.listServers.mockResolvedValue([]);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+      });
+      
+      expect(result.content[0].text).toContain('Server is not registered in Context-Pods registry');
+    });
+
+    it('should warn when server has error status in registry', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+      
+      mockRegistry.listServers.mockResolvedValue([
+        {
+          id: 'server-1',
+          name: 'test-server',
+          path: '/test/path',
+          status: 'error',
+          metadata: { errorMessage: 'Build failed' },
+        },
+      ]);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+      });
+      
+      expect(result.content[0].text).toContain('Server is registered but has error status: Build failed');
+    });
+
+    it('should skip registry check when disabled', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkRegistry: false,
+      });
+      
+      expect(result.content[0].text).not.toContain('In registry:');
+      expect(mockRegistry.listServers).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Schema Validation', () => {
+    it('should perform basic schema validation', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+        const server = new Server({ name: 'test' }, { capabilities: {} });
+        server.setRequestHandler(ListToolsRequestSchema, async () => {});
+      `);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkSchema: true,
+      });
+      
+      expect(result.content[0].text).toContain('Validation Status: VALID');
+    });
+
+    it('should warn about missing tools implementation', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+        const server = new Server({ name: 'test' }, { capabilities: {} });
+      `);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkSchema: true,
+      });
+      
+      expect(result.content[0].text).toContain('Server may not implement tools properly');
+    });
+
+    it('should warn about missing resources implementation', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(`
+        import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+        const server = new Server({ name: 'test' }, { capabilities: {} });
+        server.setRequestHandler(ListToolsRequestSchema, async () => {});
+      `);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkSchema: true,
+      });
+      
+      expect(result.content[0].text).toContain('Server may not implement resources properly');
+    });
+
+    it('should skip schema check when disabled', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkSchema: false,
+      });
+      
+      // Should not contain schema-specific warnings
+      expect(result.content[0].text).not.toContain('Server may not implement tools properly');
+    });
+  });
+
+  describe('Build Validation', () => {
+    it('should skip build validation when no build script found', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkBuild: true,
+      });
+      
+      expect(result.content[0].text).toContain('Cannot validate build - no build script found');
+    });
+
+    it('should check for dist directory when build script exists', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json', 'dist']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        scripts: { build: 'tsc' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkBuild: true,
+      });
+      
+      expect(result.content[0].text).toContain('Has build script: Yes');
+    });
+
+    it('should warn when dist directory missing but build script exists', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        scripts: { build: 'tsc' },
+      }));
+      mockFs.access
+        .mockResolvedValueOnce(undefined) // main file check
+        .mockRejectedValueOnce(new Error('ENOENT')); // dist directory check
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkBuild: true,
+      });
+      
+      expect(result.content[0].text).toContain('Build validation skipped - would require running build command');
+    });
+
+    it('should skip build validation when not requested', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        scripts: { build: 'tsc' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ 
+        mcpPath: '/test/path',
+        checkBuild: false,
+      });
+      
+      // Should not contain build-specific messages
+      expect(result.content[0].text).not.toContain('Cannot validate build');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle file system errors gracefully', async () => {
+      mockFs.readdir.mockRejectedValue(new Error('Permission denied'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Failed to read directory structure: Permission denied');
+    });
+
+    it('should handle registry errors gracefully', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+      mockRegistry.listServers.mockRejectedValue(new Error('Registry connection failed'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Failed to check registry status: Registry connection failed');
+    });
+
+    it('should handle main file read errors', async () => {
+      mockFs.readdir.mockResolvedValue(['index.js']);
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockRejectedValue(new Error('File read error'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('Failed to validate main file content: File read error');
+    });
+
+    it('should handle non-Error exceptions', async () => {
+      mockFs.readdir.mockRejectedValue('String error');
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      expect(result.content[0].text).toContain('String error');
+    });
+  });
+
+  describe('Output Formatting', () => {
+    it('should format valid server output correctly', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json', 'src', 'dist']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'awesome-server',
+        version: '2.1.0',
+        main: 'dist/index.js',
+        type: 'module',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        scripts: { build: 'tsc' },
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+      mockRegistry.listServers.mockResolvedValue([
+        {
+          id: 'server-1',
+          name: 'awesome-server',
+          path: '/test/path',
+          status: 'ready',
+          metadata: {},
+        },
+      ]);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      
+      const output = result.content[0].text;
+      expect(output).toContain('🔍 MCP Server Validation: /test/path');
+      expect(output).toContain('✅ Validation Status: VALID');
+      expect(output).toContain('📋 Server Information:');
+      expect(output).toContain('- Name: awesome-server');
+      expect(output).toContain('- Version: 2.1.0');
+      expect(output).toContain('- Has package.json: Yes');
+      expect(output).toContain('- Has main file: Yes');
+      expect(output).toContain('- Has build script: Yes');
+      expect(output).toContain('- In registry: Yes');
+      expect(output).toContain('- Registry status: ready');
+      expect(output).toContain('🎉 Great! Your MCP server passes all validation checks.');
+    });
+
+    it('should format invalid server output with errors and recommendations', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        version: '1.0.0', // missing name
+        // missing main/module/exports
+        // missing MCP SDK dependency
+      }));
+      mockFs.access.mockRejectedValue(new Error('No main file'));
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      
+      const output = result.content[0].text;
+      expect(output).toContain('❌ Validation Status: INVALID');
+      expect(output).toContain('❌ Errors');
+      expect(output).toContain('💡 Recommendations:');
+      expect(output).toContain('Fix the errors listed above');
+    });
+
+    it('should format output with warnings and recommendations', async () => {
+      mockFs.readdir.mockResolvedValue(['package.json']); // no src directory
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
+        name: 'test-server',
+        version: '1.0.0',
+        main: 'index.js',
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        // no build script
+        // no type field
+      }));
+      mockFs.access.mockResolvedValue(undefined);
+
+      const result = await validateMCPTool.safeExecute({ mcpPath: '/test/path' });
+      
+      const output = result.content[0].text;
+      expect(output).toContain('⚠️ Warnings');
+      expect(output).toContain('💡 Recommendations:');
+      expect(output).toContain('Address the warnings to improve server quality');
+    });
+  });
+});
