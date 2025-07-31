@@ -3,7 +3,7 @@
  * Validates that server responses conform to MCP protocol standards
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 import {
   CallToolRequestSchema,
@@ -45,12 +45,14 @@ const CallToolResultSchema = z.object({
 const ToolDefinitionSchema = z.object({
   name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]*$/),
   description: z.string().optional(),
-  inputSchema: z.object({
-    type: z.literal('object'),
-    properties: z.record(z.any()).optional(),
-    required: z.array(z.string()).optional(),
-    additionalProperties: z.boolean().optional(),
-  }).optional(),
+  inputSchema: z
+    .object({
+      type: z.literal('object'),
+      properties: z.record(z.any()).optional(),
+      required: z.array(z.string()).optional(),
+      additionalProperties: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 const ListToolsResultSchema = z.object({
@@ -58,7 +60,10 @@ const ListToolsResultSchema = z.object({
 });
 
 const ResourceDefinitionSchema = z.object({
-  uri: z.string().url().or(z.string().regex(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/.+/)),
+  uri: z
+    .string()
+    .url()
+    .or(z.string().regex(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/.+/)),
   name: z.string(),
   description: z.string().optional(),
   mimeType: z.string().optional(),
@@ -457,13 +462,7 @@ describe('MCP Protocol Compliance', () => {
 
   describe('Protocol Constraints', () => {
     it('should enforce tool name constraints', () => {
-      const validNames = [
-        'tool',
-        'tool-name',
-        'tool_name',
-        'toolName123',
-        'T001',
-      ];
+      const validNames = ['tool', 'tool-name', 'tool_name', 'toolName123', 'T001'];
 
       const invalidNames = [
         '123tool', // Starts with number

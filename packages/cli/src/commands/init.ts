@@ -3,6 +3,7 @@
  */
 
 import inquirer from 'inquirer';
+import path from 'path';
 import { configManager } from '../config/index.js';
 import { TemplateSelector } from '@context-pods/core';
 import type { CommandContext, CommandResult } from '../types/cli-types.js';
@@ -37,7 +38,11 @@ export async function initCommand(
     output.succeedSpinner('Project configuration created');
 
     // Display success information
-    displaySuccess(config);
+    displaySuccess({
+      name: config.name,
+      description: config.description,
+      template: config.templates.preferred,
+    });
 
     return {
       success: true,
@@ -96,7 +101,7 @@ async function collectProjectInfo(
       type: 'input',
       name: 'name',
       message: 'Project name:',
-      default: require('path').basename(context.workingDir),
+      default: path.basename(context.workingDir),
       validate: (input: string) => {
         if (!input.trim()) {
           return 'Project name is required';
