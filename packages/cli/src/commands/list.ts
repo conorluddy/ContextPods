@@ -116,7 +116,7 @@ async function analyzeMCPDirectory(name: string, mcpPath: string): Promise<MCPIn
         template =
           packageJson['context-pods']?.template ||
           packageJson.template ||
-          detectTemplateFromStructure(mcpPath);
+          await detectTemplateFromStructure(mcpPath);
       } else {
         // Not an MCP server, return null
         return null;
