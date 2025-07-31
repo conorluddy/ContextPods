@@ -3,7 +3,9 @@
  */
 
 import { spawn, type ChildProcess } from 'child_process';
+
 import { logger } from '@context-pods/core';
+
 import type { TestHarnessConfig } from '../types.js';
 
 /**
@@ -193,7 +195,7 @@ export class MCPMessageTestHarness {
    * Send a raw message
    */
   async sendMessage(message: Record<string, unknown>): Promise<unknown> {
-    if (!this.serverProcess || !this.serverProcess.stdin || !this.serverProcess.stdout) {
+    if (!this.serverProcess?.stdin || !this.serverProcess.stdout) {
       throw new Error('Server not started');
     }
 
@@ -229,7 +231,7 @@ export class MCPMessageTestHarness {
         }
       };
 
-      if (!this.serverProcess || !this.serverProcess.stdout || !this.serverProcess.stdin) {
+      if (!this.serverProcess?.stdout || !this.serverProcess.stdin) {
         reject(new Error('Server process or streams not available'));
         return;
       }
@@ -311,7 +313,7 @@ export class MCPMessageTestHarness {
     };
 
     // Send without expecting response
-    if (!this.serverProcess || !this.serverProcess.stdin) {
+    if (!this.serverProcess?.stdin) {
       throw new Error('Server not started');
     }
 
@@ -332,7 +334,7 @@ export class MCPMessageTestHarness {
   /**
    * Delay helper
    */
-  private delay(ms: number): Promise<void> {
+  private async delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 

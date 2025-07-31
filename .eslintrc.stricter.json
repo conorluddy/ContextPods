@@ -14,36 +14,29 @@
     "prettier"
   ],
   "rules": {
+    // Current rules
     "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
     "no-console": ["warn", { "allow": ["warn", "error"] }],
 
-    // Promise handling - prevent unhandled promise rejections
+    // Phase 1: Essential safety rules
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-misused-promises": "error",
+    "@typescript-eslint/require-await": "error",
     "@typescript-eslint/await-thenable": "error",
-
-    // Async function rules
-    "@typescript-eslint/require-await": "warn",
-    "@typescript-eslint/promise-function-async": [
-      "error",
-      {
-        "checkArrowFunctions": false
-      }
-    ],
-
-    // Code quality improvements
-    "@typescript-eslint/prefer-nullish-coalescing": "warn",
-    "@typescript-eslint/prefer-optional-chain": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
-
-    // Error handling
     "no-throw-literal": "error",
     "prefer-promise-reject-errors": "error",
 
-    // Import organization (as warnings first)
+    // Phase 2: Code quality (start as warnings)
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
+    "@typescript-eslint/prefer-optional-chain": "warn",
+    "complexity": ["warn", 20],
+    "max-depth": ["warn", 5],
+
+    // Phase 3: Import organization
     "import/order": [
       "warn",
       {
@@ -55,19 +48,8 @@
         }
       }
     ],
-    "import/no-duplicates": "warn",
-
-    // Complexity limits (as warnings to start)
-    "complexity": ["warn", 20],
-    "max-depth": ["warn", 5],
-    "max-lines-per-function": [
-      "warn",
-      {
-        "max": 150,
-        "skipBlankLines": true,
-        "skipComments": true
-      }
-    ]
+    "import/no-duplicates": "error",
+    "import/no-cycle": ["warn", { "maxDepth": 3 }]
   },
   "ignorePatterns": ["dist", "build", "coverage", "node_modules", "*.config.js", "*.config.ts"],
   "overrides": [
@@ -83,6 +65,7 @@
         "@typescript-eslint/no-unsafe-return": "off",
         "@typescript-eslint/require-await": "off",
         "@typescript-eslint/no-floating-promises": "off",
+        "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-redundant-type-constituents": "off",
         "no-case-declarations": "off",
@@ -106,7 +89,8 @@
         "@typescript-eslint/require-await": "off",
         "@typescript-eslint/unbound-method": "off",
         "@typescript-eslint/no-base-to-string": "off",
-        "@typescript-eslint/no-floating-promises": "off"
+        "@typescript-eslint/no-floating-promises": "off",
+        "@typescript-eslint/no-misused-promises": "off"
       }
     },
     {
