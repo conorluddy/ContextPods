@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/conorluddy-contextpods-badge.png)](https://mseep.ai/app/conorluddy-contextpods)
+
 # Context-Pods
 
 [![GitHub Stars](https://img.shields.io/github/stars/conorluddy/ContextPods?style=social)](https://github.com/conorluddy/ContextPods)
