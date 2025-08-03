@@ -355,10 +355,6 @@ npm test --workspace=@context-pods/server
 npm run test:e2e
 ```
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
-
 ### Development Setup
 
 ```bash
