@@ -11,6 +11,11 @@
 
 **Context-Pods** is a comprehensive development framework for creating, testing, and managing Model Context Protocol (MCP) servers. It provides a Meta-MCP Server that can generate other MCP servers through natural language descriptions or by wrapping existing scripts.
 
+
+> [!WARNING]
+> You might need to massage this a little with your own LLM to get it to work for you - I haven't had a chance to harden it yet. I'll come back to it very soon.
+
+
 ## 🚀 Quick Start
 
 ```bash
