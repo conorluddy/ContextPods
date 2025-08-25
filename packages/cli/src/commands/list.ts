@@ -4,6 +4,7 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
+
 import type { CommandContext, CommandResult, MCPInfo } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 

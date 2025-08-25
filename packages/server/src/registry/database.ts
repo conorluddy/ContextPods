@@ -4,20 +4,17 @@
 
 import sqlite3 from 'sqlite3';
 import type { Database as DatabaseType } from 'sqlite3';
+
 const { Database } = sqlite3;
 import { promises as fs } from 'fs';
 import { dirname } from 'path';
+
 import { logger } from '@context-pods/core';
+
 import { CONFIG } from '../config/index.js';
-import type {
-  MCPServerMetadata,
-  MCPServerRow,
-  MCPServerFilters,
-} from './models.js';
-import {
-  rowToMetadata,
-  metadataToRow,
-} from './models.js';
+
+import type { MCPServerMetadata, MCPServerRow, MCPServerFilters } from './models.js';
+import { rowToMetadata, metadataToRow } from './models.js';
 
 /**
  * Registry database class
@@ -109,7 +106,7 @@ export class RegistryDatabase {
             logger.info(`Created server record: ${metadata.name} (${metadata.id})`);
             resolve();
           }
-        }
+        },
       );
     });
   }
@@ -182,7 +179,7 @@ export class RegistryDatabase {
             logger.info(`Updated server record: ${updated.name} (${id})`);
             resolve(this.changes > 0);
           }
-        }
+        },
       );
     });
   }
@@ -289,7 +286,7 @@ export class RegistryDatabase {
   /**
    * Open database connection
    */
-  private openDatabase(): Promise<DatabaseType> {
+  private async openDatabase(): Promise<DatabaseType> {
     return new Promise((resolve, reject) => {
       const db = new Database(this.dbPath, (error: Error | null) => {
         if (error) {
@@ -304,7 +301,7 @@ export class RegistryDatabase {
   /**
    * Configure database settings
    */
-  private configureDatabaseSettings(): Promise<void> {
+  private async configureDatabaseSettings(): Promise<void> {
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -327,8 +324,8 @@ export class RegistryDatabase {
                 resolve();
               }
             });
-          })
-      )
+          }),
+      ),
     ).then(() => {
       logger.debug('Database settings configured');
     });
@@ -337,7 +334,7 @@ export class RegistryDatabase {
   /**
    * Create database tables
    */
-  private createTables(): Promise<void> {
+  private async createTables(): Promise<void> {
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -379,8 +376,8 @@ export class RegistryDatabase {
                       resolve();
                     }
                   });
-                })
-            )
+                }),
+            ),
           )
             .then(() => {
               logger.debug('Database tables and indexes created');

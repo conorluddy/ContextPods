@@ -3,8 +3,9 @@
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+
 // import { z } from 'zod'; // Will be used later for validation
 import type { CLIConfig, ProjectConfig } from '../types/cli-types.js';
 import { CLIConfigSchema, ProjectConfigSchema } from '../types/cli-types.js';

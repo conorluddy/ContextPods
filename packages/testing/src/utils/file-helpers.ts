@@ -20,7 +20,7 @@ export class FileHelpers {
   static async cleanupDir(path: string): Promise<void> {
     try {
       await fs.rm(path, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   }

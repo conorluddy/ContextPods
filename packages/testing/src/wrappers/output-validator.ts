@@ -164,7 +164,7 @@ export class OutputValidator {
     if (typeof output === 'string') {
       try {
         JSON.parse(output);
-      } catch (error) {
+      } catch {
         throw new Error('Output is not valid JSON');
       }
     } else if (typeof output !== 'object' || output === null) {

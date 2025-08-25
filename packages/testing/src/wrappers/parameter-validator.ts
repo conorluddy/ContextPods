@@ -120,33 +120,38 @@ export class ParameterValidator {
       // Min/max constraints
       if (constraint.min !== undefined && Number(value) < constraint.min) {
         violations.push(
-          `Parameter ${param}: value ${String(value)} is less than minimum ${constraint.min}`,
+          `Parameter ${param}: value ${JSON.stringify(value)} is less than minimum ${constraint.min}`,
         );
       }
 
       if (constraint.max !== undefined && Number(value) > constraint.max) {
         violations.push(
-          `Parameter ${param}: value ${String(value)} is greater than maximum ${constraint.max}`,
+          `Parameter ${param}: value ${JSON.stringify(value)} is greater than maximum ${constraint.max}`,
         );
       }
 
       // Pattern constraint
-      if (constraint.pattern && !constraint.pattern.test(String(value))) {
+      if (
+        constraint.pattern &&
+        !constraint.pattern.test(typeof value === 'string' ? value : JSON.stringify(value))
+      ) {
         violations.push(
-          `Parameter ${param}: value ${String(value)} doesn't match pattern ${String(constraint.pattern)}`,
+          `Parameter ${param}: value ${JSON.stringify(value)} doesn't match pattern ${String(constraint.pattern)}`,
         );
       }
 
       // Enum constraint
       if (constraint.enum && !constraint.enum.includes(value)) {
         violations.push(
-          `Parameter ${param}: value ${String(value)} is not one of ${constraint.enum?.join(', ') || 'unknown'}`,
+          `Parameter ${param}: value ${JSON.stringify(value)} is not one of ${constraint.enum?.join(', ') || 'unknown'}`,
         );
       }
 
       // Custom validator
       if (constraint.validator && !constraint.validator(value)) {
-        violations.push(`Parameter ${param}: value ${String(value)} failed custom validation`);
+        violations.push(
+          `Parameter ${param}: value ${JSON.stringify(value)} failed custom validation`,
+        );
       }
     }
 

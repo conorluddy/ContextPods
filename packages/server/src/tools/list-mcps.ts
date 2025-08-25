@@ -2,7 +2,6 @@
  * List MCP servers tool
  */
 
-import { BaseTool, type ToolResult } from './base-tool.js';
 import {
   getRegistryOperations,
   MCPServerStatus,
@@ -10,6 +9,8 @@ import {
   type MCPServerMetadata,
   type RegistryOperations,
 } from '../registry/index.js';
+
+import { BaseTool, type ToolResult } from './base-tool.js';
 
 /**
  * Arguments for list-mcps tool
@@ -34,49 +35,49 @@ export class ListMCPsTool extends BaseTool {
   /**
    * Validate list-mcps arguments
    */
-  protected validateArguments(args: unknown): Promise<string | null> {
+  protected async validateArguments(args: unknown): Promise<string | null> {
     const typedArgs = args as ListMCPsArgs;
 
     // Validate optional arguments
     if (typedArgs.filter !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'filter', false);
-      if (error) return Promise.resolve(error);
+      if (error) return error;
     }
 
     if (typedArgs.status !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'status', false);
-      if (error) return Promise.resolve(error);
+      if (error) return error;
 
       // Validate status value
       const validStatuses = Object.values(MCPServerStatus);
       if (!validStatuses.includes(typedArgs.status as MCPServerStatus)) {
-        return Promise.resolve(`Invalid status. Valid values: ${validStatuses.join(', ')}`);
+        return `Invalid status. Valid values: ${validStatuses.join(', ')}`;
       }
     }
 
     if (typedArgs.template !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'template', false);
-      if (error) return Promise.resolve(error);
+      if (error) return error;
     }
 
     if (typedArgs.language !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'language', false);
-      if (error) return Promise.resolve(error);
+      if (error) return error;
     }
 
     if (typedArgs.search !== undefined) {
       const error = this.validateStringArgument(typedArgs, 'search', false);
-      if (error) return Promise.resolve(error);
+      if (error) return error;
     }
 
     if (typedArgs.format !== undefined) {
       const validFormats = ['table', 'json', 'summary'];
       if (!validFormats.includes(typedArgs.format)) {
-        return Promise.resolve(`Invalid format. Valid values: ${validFormats.join(', ')}`);
+        return `Invalid format. Valid values: ${validFormats.join(', ')}`;
       }
     }
 
-    return Promise.resolve(null);
+    return null;
   }
 
   /**

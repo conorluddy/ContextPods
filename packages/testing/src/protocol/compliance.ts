@@ -132,7 +132,7 @@ export class MCPComplianceTestSuite {
           if (!response.error) {
             throw new Error('Server allowed double initialization');
           }
-        } catch (error) {
+        } catch {
           // Expected behavior
         }
       }),
@@ -327,7 +327,7 @@ export class MCPComplianceTestSuite {
       await this.runTest('Invalid JSON Handling', async () => {
         try {
           await this.harness.sendInvalidMessage('not json');
-        } catch (error) {
+        } catch {
           // Expected to fail
         }
       }),
@@ -419,7 +419,7 @@ export class MCPComplianceTestSuite {
           if (responses.length !== requests.length) {
             throw new Error('Batch response count mismatch');
           }
-        } catch (error) {
+        } catch {
           // Some servers may not support batch requests
           logger.warn('Server does not support batch requests');
         }

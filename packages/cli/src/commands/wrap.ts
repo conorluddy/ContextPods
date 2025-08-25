@@ -4,12 +4,14 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import inquirer from 'inquirer';
+
 import type { TemplateSelectionResult } from '@context-pods/core';
 import { TemplateSelector, DefaultTemplateEngine } from '@context-pods/core';
+import inquirer from 'inquirer';
+
 import type { WrapOptions, CommandContext, CommandResult } from '../types/cli-types.js';
-import { output } from '../utils/output-formatter.js';
 import { CacheManager } from '../utils/cache-manager.js';
+import { output } from '../utils/output-formatter.js';
 
 /**
  * Script analysis result
@@ -178,7 +180,7 @@ function detectLanguage(ext: string, content: string): string {
       const lines = content.split('\n');
       if (lines.length > 0) {
         const firstLine = lines[0];
-        if (firstLine && firstLine.startsWith('#!')) {
+        if (firstLine?.startsWith('#!')) {
           if (firstLine.includes('node')) return 'javascript';
           if (firstLine.includes('python')) return 'python';
           if (firstLine.includes('bash') || firstLine.includes('sh')) return 'shell';

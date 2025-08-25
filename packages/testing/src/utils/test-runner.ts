@@ -146,7 +146,7 @@ export class TestRunner {
       }
     }
 
-    throw lastError;
+    throw new Error(lastError ? lastError.message : 'All test attempts failed');
   }
 
   /**

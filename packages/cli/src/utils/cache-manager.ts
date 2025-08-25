@@ -2,11 +2,13 @@
  * Cache management utilities for Context-Pods CLI
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { promises as fs } from 'fs';
 import os from 'os';
+import path from 'path';
+
 import type { CLIConfig } from '../types/cli-types.js';
+
 import { output } from './output-formatter.js';
 
 /**

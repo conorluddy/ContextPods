@@ -217,17 +217,17 @@ export class MCPMessageTestHarness {
                 resolve(response);
                 return;
               }
-            } catch (e) {
+            } catch {
               // Not JSON, continue
               if (this.config.debug) {
                 logger.debug(`Non-JSON output: ${line}`);
               }
             }
           }
-        } catch (error) {
+        } catch {
           clearTimeout(timeout);
           this.serverProcess?.stdout?.off('data', responseHandler);
-          reject(error);
+          reject(new Error('Failed to send message'));
         }
       };
 

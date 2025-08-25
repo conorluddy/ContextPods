@@ -2,11 +2,14 @@
  * TurboRepo integration utilities for Context-Pods CLI
  */
 
-import { execa } from 'execa';
-import type { Result } from 'execa';
 import { promises as fs } from 'fs';
 import path from 'path';
+
+import { execa } from 'execa';
+import type { Result } from 'execa';
+
 import type { CLIConfig } from '../types/cli-types.js';
+
 import { output } from './output-formatter.js';
 
 /**

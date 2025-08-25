@@ -4,10 +4,12 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import inquirer from 'inquirer';
+
 import type { TemplateSelectionResult, TemplateVariable } from '@context-pods/core';
 import { TemplateSelector, DefaultTemplateEngine } from '@context-pods/core';
 import { getTemplatesPath } from '@context-pods/templates';
+import inquirer from 'inquirer';
+
 import type { GenerateOptions, CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 
@@ -158,9 +160,14 @@ function displayTemplateInfo(template: TemplateSelectionResult): void {
     Object.entries(template.template.variables).forEach(
       ([name, config]: [string, TemplateVariable]) => {
         const required = config.required ? '(required)' : '(optional)';
+        const formatDefaultValue = (value: unknown): string => {
+          if (typeof value === 'object' && value !== null) {
+            return JSON.stringify(value);
+          }
+          return String(value);
+        };
         const defaultValue =
-          // eslint-disable-next-line @typescript-eslint/no-base-to-string
-          config.default !== undefined ? ` [default: ${typeof config.default === 'object' ? JSON.stringify(config.default) : String(config.default)}]` : '';
+          config.default !== undefined ? ` [default: ${formatDefaultValue(config.default)}]` : '';
         output.list([
           `${name}: ${config.description || 'No description'} ${required}${defaultValue}`,
         ]);

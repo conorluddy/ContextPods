@@ -3,15 +3,16 @@
  */
 
 import { spawn } from 'child_process';
-import { join } from 'path';
 import { promises as fs } from 'fs';
-import { output } from '../utils/output-formatter.js';
+import { join } from 'path';
+
 import type {
   CommandContext,
   CommandResult,
   ServerOptions,
   ServerStatus,
 } from '../types/cli-types.js';
+import { output } from '../utils/output-formatter.js';
 
 /**
  * Start the Meta-MCP Server
