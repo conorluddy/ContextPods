@@ -61,3 +61,5 @@ npx @context-pods/testing generate-report ./test-results.json --format html
 - **Pre-flight Checks** - Validate template integrity before processing
 - **ES Module Compatibility** - Use import.meta.url instead of \_\_dirname
 - **File Extensions** - Always include .js extensions in TypeScript imports
+
+- The Schema SSOT for MCP is here: https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema
