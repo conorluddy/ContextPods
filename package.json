@@ -1,6 +1,6 @@
 {
   "name": "context-pods",
-  "version": "0.1.10",
+  "version": "0.2.0",
   "description": "ContextPods - a developer tool that generates functional MCP servers from templates",
   "private": true,
   "workspaces": [
