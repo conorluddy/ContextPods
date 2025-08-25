@@ -7,7 +7,7 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { logger } from '@context-pods/core';
+import { logger } from '../utils/logger.js';
 
 /**
  * Available resources

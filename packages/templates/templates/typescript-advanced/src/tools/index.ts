@@ -4,7 +4,7 @@
 
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { logger } from '@context-pods/core';
+import { logger } from '../utils/logger.js';
 import { fileTools, handleFileToolCall } from './file-tools.js';
 import { dataTools, handleDataToolCall } from './data-tools.js';
 import { utilityTools, handleUtilityToolCall } from './utility-tools.js';

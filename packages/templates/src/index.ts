@@ -7,9 +7,9 @@
  * - Template path resolution
  */
 
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, readdirSync, readFileSync } from 'fs';
 
 /**
  * Get the directory containing this module
@@ -90,7 +90,7 @@ export function getAvailableTemplates(): TemplateMetadata[] {
  */
 export function getTemplate(name: string): TemplateMetadata | null {
   const templates = getAvailableTemplates();
-  return templates.find((t) => t.name === name) || null;
+  return templates.find((t) => t.name === name) ?? null;
 }
 
 /**
