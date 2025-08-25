@@ -2,9 +2,6 @@
  * File-related tools for {{serverName}}
  */
 
-import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { logger } from '@context-pods/core';
 import { z } from 'zod';
 
 /**

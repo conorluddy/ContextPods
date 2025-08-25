@@ -201,9 +201,9 @@ describe('Init Command', () => {
       ]);
       expect(output.info).toHaveBeenCalledWith('Next steps:');
       expect(output.list).toHaveBeenCalledWith([
-        'undefined - Generate a new MCP server',
-        'undefined - Wrap an existing script',
-        'undefined - List available templates',
+        'context-pods generate - Generate a new MCP server',
+        'context-pods wrap script.js - Wrap an existing script',
+        'context-pods templates - List available templates',
       ]);
       expect(result.success).toBe(true);
     });

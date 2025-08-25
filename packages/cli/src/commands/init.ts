@@ -2,10 +2,12 @@
  * Init command implementation
  */
 
-import inquirer from 'inquirer';
 import path from 'path';
-import { configManager } from '../config/index.js';
+
 import { TemplateSelector } from '@context-pods/core';
+import inquirer from 'inquirer';
+
+import { configManager } from '../config/index.js';
 import type { CommandContext, CommandResult } from '../types/cli-types.js';
 import { output } from '../utils/output-formatter.js';
 
@@ -155,7 +157,7 @@ async function collectProjectInfo(
     }
   }
 
-  const answers = await inquirer.prompt(questions);
+  const answers = await inquirer.prompt(questions as any);
 
   return {
     name: name || answers.name,

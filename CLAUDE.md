@@ -53,6 +53,18 @@ npx @context-pods/testing generate-report ./test-results.json --format html
 - **Test Coverage** - New code should include comprehensive tests
 - **MCP Compliance** - All MCP servers must pass protocol validation tests
 
+## Quality Gates - ALL MUST PASS BEFORE COMMIT/PUSH
+
+Before committing or pushing any changes, ALL of the following quality gates must pass:
+
+1. **Build**: `npm run build` - All packages must build successfully
+2. **Type Check**: `npm run type-check` - All TypeScript must type check without errors
+3. **Lint**: `npm run lint` - All ESLint rules must pass (zero errors, warnings acceptable)
+4. **Format**: `npm run format` - All code must be properly formatted
+5. **Test**: `npm run test` - All tests must pass (91+ tests across all packages)
+
+**CRITICAL**: If any quality gate fails, you MUST fix the issues before proceeding. The pre-commit hooks enforce these standards and will prevent commits that don't meet quality requirements.
+
 ## Template Generation Best Practices
 
 - **Array Validation** - Always validate array elements individually, not the entire array
@@ -61,3 +73,5 @@ npx @context-pods/testing generate-report ./test-results.json --format html
 - **Pre-flight Checks** - Validate template integrity before processing
 - **ES Module Compatibility** - Use import.meta.url instead of \_\_dirname
 - **File Extensions** - Always include .js extensions in TypeScript imports
+
+- The Schema SSOT for MCP is here: https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema

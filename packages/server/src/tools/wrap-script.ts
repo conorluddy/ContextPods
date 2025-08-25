@@ -2,17 +2,20 @@
  * Wrap script as MCP server tool
  */
 
-import { join, basename, extname } from 'path';
 import { promises as fs } from 'fs';
+import { join, basename, extname } from 'path';
+
 import {
   TemplateSelector,
   DefaultTemplateEngine,
   logger,
   TemplateLanguage,
 } from '@context-pods/core';
-import { BaseTool, type ToolResult } from './base-tool.js';
-import { getRegistryOperations } from '../registry/index.js';
+
 import { CONFIG } from '../config/index.js';
+import { getRegistryOperations } from '../registry/index.js';
+
+import { BaseTool, type ToolResult } from './base-tool.js';
 
 /**
  * Arguments for wrap-script tool
@@ -79,7 +82,7 @@ export class WrapScriptTool extends BaseTool {
       if (!stat.isFile()) {
         return 'Script path must point to a file';
       }
-    } catch (error) {
+    } catch {
       return `Script file not found: ${typedArgs.scriptPath}`;
     }
 

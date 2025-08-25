@@ -35,15 +35,15 @@
   },
   "dependencies": {
     "@context-pods/core": "*",
-    "@modelcontextprotocol/sdk": "^1.16.0",
-    "zod": "^3.23.8",
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "zod": "^4.1.1",
     "execa": "^9.6.0",
-    "p-limit": "^6.1.0"
+    "p-limit": "^7.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.0",
-    "memfs": "^4.19.0",
-    "vitest": "^1.6.0"
+    "@types/node": "^24.3.0",
+    "memfs": "^4.38.1",
+    "vitest": "^3.2.4"
   },
   "publishConfig": {
     "access": "public"

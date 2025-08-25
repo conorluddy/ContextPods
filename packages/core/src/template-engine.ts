@@ -4,6 +4,7 @@
 
 import { promises as fs } from 'fs';
 import { join, dirname, extname } from 'path';
+
 import { logger } from './logger.js';
 import type {
   TemplateEngine,
@@ -287,7 +288,8 @@ export class DefaultTemplateEngine implements TemplateEngine {
       // Pattern validation for strings
       if (definition.type === 'string' && definition.validation?.pattern) {
         const pattern = new RegExp(definition.validation.pattern);
-        const stringValue = String(value);
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
         if (!pattern.test(stringValue)) {
           errors.push({
             field: name,
@@ -344,7 +346,8 @@ export class DefaultTemplateEngine implements TemplateEngine {
           }
         } else if (definition.type !== 'array') {
           // For non-arrays, validate the value directly
-          const stringValue = String(value);
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
+          const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
           if (!definition.validation.options.includes(stringValue)) {
             errors.push({
               field: name,

@@ -178,7 +178,7 @@ describe('Templates Command', () => {
       // Assert: Should handle empty template list
       expect(output.warn).toHaveBeenCalledWith('No templates found');
       expect(output.info).toHaveBeenCalledWith('Template directories searched:');
-      expect(output.list).toHaveBeenCalledWith([undefined]);
+      expect(output.list).toHaveBeenCalledWith(['/mock/templates']);
       expect(output.list).toHaveBeenCalledTimes(2);
       expect(result.success).toBe(true);
       expect(result.message).toBe('No templates found');
@@ -309,7 +309,7 @@ describe('Templates Command', () => {
       const result = await templatesCommand(options, mockContext);
 
       // Assert: Should display complete information
-      expect(output.info).toHaveBeenCalledWith('1. undefined ⚡'); // template function returns undefined in mock
+      expect(output.info).toHaveBeenCalledWith('1. full-featured ⚡'); // template function returns the template name
       expect(output.table).toHaveBeenCalledWith([
         { label: '  Language', value: 'typescript', color: 'blue' },
         { label: '  Description', value: 'Full-featured template with all metadata' },
@@ -540,7 +540,7 @@ describe('Templates Command', () => {
         ]),
       );
       expect(output.info).toHaveBeenCalledWith('Template search paths:');
-      expect(output.list).toHaveBeenCalledWith([undefined]);
+      expect(output.list).toHaveBeenCalledWith(['/mock/templates']);
       expect(output.list).toHaveBeenCalledTimes(3); // Usage examples + template paths
       expect(result.success).toBe(true);
     });
@@ -583,11 +583,11 @@ describe('Templates Command', () => {
       // Action: Execute templates command
       const result = await templatesCommand(options, mockContext);
 
-      // Assert: Should show usage examples (mocked functions return undefined)
+      // Assert: Should show usage examples
       expect(output.info).toHaveBeenCalledWith('Usage examples:');
       expect(output.list).toHaveBeenCalledWith([
-        'undefined undefined', // command and template functions return undefined in mock
-        'undefined --template undefined',
+        'context-pods generate example-template',
+        'context-pods wrap script.js --template example-template',
       ]);
       expect(result.success).toBe(true);
     });

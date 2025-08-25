@@ -2,24 +2,18 @@
  * Main CLI entry point for Context-Pods
  */
 
-import { Command } from 'commander';
-import { configManager } from './config/index.js';
-import { output } from './utils/output-formatter.js';
 // import { TurboIntegration } from './utils/turbo-integration.js'; // Unused for now
-import { CacheManager } from './utils/cache-manager.js';
 import { getAllExistingTemplatePaths } from '@context-pods/core';
 import { getTemplatesPath } from '@context-pods/templates';
-import type { CommandContext } from './types/cli-types.js';
+import { Command } from 'commander';
 
 // Import command handlers (these will be implemented next)
-import { wrapCommand } from './commands/wrap.js';
-import { generateCommand } from './commands/generate.js';
-import { devCommand } from './commands/dev.js';
 import { buildCommand } from './commands/build.js';
-import { testCommand } from './commands/test.js';
-import { listCommand } from './commands/list.js';
-import { templatesCommand } from './commands/templates.js';
+import { devCommand } from './commands/dev.js';
+import { doctorCommand } from './commands/doctor.js';
+import { generateCommand } from './commands/generate.js';
 import { initCommand } from './commands/init.js';
+import { listCommand } from './commands/list.js';
 import {
   startServerCommand,
   stopServerCommand,
@@ -27,6 +21,14 @@ import {
   testServerCommand,
   devServerCommand,
 } from './commands/server.js';
+import { templatesCommand } from './commands/templates.js';
+import { testCommand } from './commands/test.js';
+import { wizardCommand } from './commands/wizard.js';
+import { wrapCommand } from './commands/wrap.js';
+import { configManager } from './config/index.js';
+import type { CommandContext } from './types/cli-types.js';
+import { CacheManager } from './utils/cache-manager.js';
+import { output } from './utils/output-formatter.js';
 
 /**
  * Create and configure the CLI program
@@ -53,7 +55,14 @@ export function createProgram(): Command {
   // Wrap command - Convert scripts to MCP servers
   program
     .command('wrap')
-    .description('Wrap a script as an MCP server')
+    .description(
+      `Wrap a script as an MCP server
+
+Examples:
+  context-pods wrap ./my-script.py --name python-tools
+  context-pods wrap ./data-processor.js --name data-tools --output ./generated
+  context-pods wrap ./backup.sh --name backup-server --description "Server for backup operations"`,
+    )
     .argument('<script>', 'Path to the script file to wrap')
     .option('-t, --template <name>', 'Template to use (auto-detected if not specified)')
     .option('-o, --output <path>', 'Output directory')
@@ -68,7 +77,16 @@ export function createProgram(): Command {
   // Generate command - Generate MCP server from template
   program
     .command('generate [template]')
-    .description('Generate an MCP server from a template')
+    .description(
+      `Generate an MCP server from a template
+
+Examples:
+  context-pods generate                                    # Interactive template selection
+  context-pods generate typescript-basic --name weather-api
+  context-pods generate python-basic --name data-processor --output ./servers
+  context-pods generate rust-advanced --name file-manager --var "port=3001"
+  context-pods generate --generate-mcp-config --config-name my-server`,
+    )
     .option('-o, --output <path>', 'Output directory')
     .option('-n, --name <name>', 'MCP server name')
     .option('-d, --description <text>', 'MCP server description')
@@ -124,7 +142,14 @@ export function createProgram(): Command {
   // List command - List generated MCPs
   program
     .command('list')
-    .description('List generated MCP servers')
+    .description(
+      `List generated MCP servers
+
+Examples:
+  context-pods list                        # Show active MCP servers in table format
+  context-pods list --all                  # Show all MCP servers including inactive
+  context-pods list --format json         # Output as JSON for scripting`,
+    )
     .option('-a, --all', 'Show all MCPs including inactive')
     .option('-f, --format <type>', 'Output format (table, json)', 'table')
     .action(async (options, command) => {
@@ -135,7 +160,14 @@ export function createProgram(): Command {
   // Templates command - Manage templates
   program
     .command('templates')
-    .description('List available templates')
+    .description(
+      `List available templates
+
+Examples:
+  context-pods templates                   # Show available templates in table format
+  context-pods templates --all             # Show all templates including custom ones
+  context-pods templates --format json    # Output as JSON for scripting`,
+    )
     .option('-a, --all', 'Show all templates including custom')
     .option('-f, --format <type>', 'Output format (table, json)', 'table')
     .action(async (options, command) => {
@@ -146,13 +178,54 @@ export function createProgram(): Command {
   // Init command - Initialize project configuration
   program
     .command('init [name]')
-    .description('Initialize Context-Pods project configuration')
+    .description(
+      `Initialize Context-Pods project configuration
+
+Examples:
+  context-pods init                        # Interactive project setup
+  context-pods init my-mcp-project         # Initialize with project name
+  context-pods init --template typescript-basic --description "My MCP project"`,
+    )
     .option('-t, --template <name>', 'Preferred template')
     .option('-d, --description <text>', 'Project description')
     .option('-f, --force', 'Overwrite existing configuration')
     .action(async (name, options, command) => {
       const context = await createCommandContext(command);
       await initCommand(name, options, context);
+    });
+
+  // Doctor command - System health check and troubleshooting
+  program
+    .command('doctor')
+    .description(
+      `Run system health checks and diagnostics
+
+Examples:
+  context-pods doctor                      # Run all health checks
+  context-pods doctor --verbose           # Show detailed information
+  context-pods doctor --fix               # Automatically fix detected issues`,
+    )
+    .option('-v, --verbose', 'Show detailed information for all checks')
+    .option('--fix', 'Attempt to automatically fix issues')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command);
+      await doctorCommand(options, context);
+    });
+
+  // Wizard command - Interactive guided setup
+  program
+    .command('wizard')
+    .description(
+      `Interactive wizard for first-time users
+
+Examples:
+  context-pods wizard                      # Full interactive setup wizard
+  context-pods wizard --skip-intro        # Skip welcome message`,
+    )
+    .option('--skip-intro', 'Skip the welcome message and introduction')
+    .action(async (options, command) => {
+      const context = await createCommandContext(command);
+      await wizardCommand(options, context);
     });
 
   // Cache command - Manage cache

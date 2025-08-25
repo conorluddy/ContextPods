@@ -42,7 +42,7 @@ export class ScriptWrapperTester {
     // Validate script exists
     try {
       await fs.access(this.config.scriptPath);
-    } catch (error) {
+    } catch {
       tests.push({
         name: 'Script Validation',
         status: TestStatus.FAILED,
@@ -189,7 +189,7 @@ export class ScriptWrapperTester {
       if (value === true) {
         args.push(`--${key}`);
       } else if (value !== false && value !== null && value !== undefined) {
-        args.push(`--${key}`, String(value));
+        args.push(`--${key}`, JSON.stringify(value));
       }
     }
 

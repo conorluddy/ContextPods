@@ -2,10 +2,12 @@
  * Validate MCP server tool
  */
 
-import { join } from 'path';
 import { promises as fs } from 'fs';
-import { BaseTool, type ToolResult } from './base-tool.js';
+import { join } from 'path';
+
 import { getRegistryOperations } from '../registry/index.js';
+
+import { BaseTool, type ToolResult } from './base-tool.js';
 
 /**
  * Arguments for validate-mcp tool
@@ -61,7 +63,7 @@ export class ValidateMCPTool extends BaseTool {
       if (!stat.isDirectory()) {
         return 'MCP path must point to a directory';
       }
-    } catch (error) {
+    } catch {
       return `MCP directory not found: ${typedArgs.mcpPath}`;
     }
 
@@ -221,7 +223,7 @@ export class ValidateMCPTool extends BaseTool {
       }
 
       // Check for build script
-      result.info.hasBuildScript = packageJson.scripts && packageJson.scripts.build;
+      result.info.hasBuildScript = packageJson.scripts?.build;
 
       if (result.info.hasBuildScript) {
         result.info.language = this.detectLanguageFromPackageJson(packageJson);

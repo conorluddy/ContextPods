@@ -57,7 +57,7 @@ export const TemplateMetadataSchema = z.object({
   tags: z.array(z.string()).optional(),
   language: TemplateLanguageSchema,
   optimization: TemplateOptimizationSchema,
-  variables: z.record(TemplateVariableSchema),
+  variables: z.record(z.string(), TemplateVariableSchema),
   files: z.array(TemplateFileSchema),
   dependencies: z
     .object({
@@ -66,7 +66,7 @@ export const TemplateMetadataSchema = z.object({
       peer: z.array(z.string()).optional(),
     })
     .optional(),
-  scripts: z.record(z.string()).optional(),
+  scripts: z.record(z.string(), z.string()).optional(),
 });
 
 /**
@@ -80,7 +80,7 @@ export const PodConfigSchema = z.object({
   description: z.string().min(1),
   template: z.string().min(1),
   outputPath: z.string().optional(),
-  variables: z.record(z.unknown()).optional(),
+  variables: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
@@ -89,7 +89,7 @@ export const PodConfigSchema = z.object({
 export const MCPToolSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  inputSchema: z.record(z.unknown()),
+  inputSchema: z.record(z.string(), z.unknown()),
 });
 
 /**
@@ -136,7 +136,7 @@ export const MCPServerManifestSchema = z.object({
  * Schema for template processing context
  */
 export const TemplateContextSchema = z.object({
-  variables: z.record(z.unknown()),
+  variables: z.record(z.string(), z.unknown()),
   outputPath: z.string().min(1),
   templatePath: z.string().min(1),
   optimization: TemplateOptimizationSchema,

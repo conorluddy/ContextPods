@@ -4,11 +4,11 @@
  * Provides consistent template path resolution across CLI and server packages
  */
 
+import { existsSync, readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { homedir } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, readFileSync } from 'fs';
-import { homedir } from 'os';
-import { createRequire } from 'module';
 
 /**
  * Get the directory containing this module (works in both CJS and ESM)
@@ -42,7 +42,7 @@ function findProjectRoot(startDir: string): string {
         if (pkg.name === 'context-pods' && pkg.workspaces) {
           return current;
         }
-      } catch (error) {
+      } catch {
         // Continue searching if package.json is malformed
       }
     }

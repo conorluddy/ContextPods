@@ -36,7 +36,7 @@ export abstract class BaseTool {
    */
   async safeExecute(args: unknown): Promise<MCPToolResponse> {
     const startTime = Date.now();
-    
+
     try {
       logger.info(`Executing tool: ${this.toolName}`, { args });
 
@@ -51,16 +51,15 @@ export abstract class BaseTool {
 
       // Format successful response
       const response = this.formatResponse(result);
-      
+
       const duration = Date.now() - startTime;
       logger.info(`Tool executed successfully: ${this.toolName}`, { duration });
 
       return response;
-
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       logger.error(`Tool execution failed: ${this.toolName}`, {
         error: errorMessage,
         duration,
@@ -79,10 +78,10 @@ export abstract class BaseTool {
   /**
    * Validate tool arguments
    */
-  protected validateArguments(_args: unknown): Promise<string | null> {
+  protected async validateArguments(_args: unknown): Promise<string | null> {
     // Default implementation - no validation
     // Override in subclasses for specific validation
-    return Promise.resolve(null);
+    return null;
   }
 
   /**
@@ -108,7 +107,7 @@ export abstract class BaseTool {
 
     // Add warnings if any
     if (result.warnings && result.warnings.length > 0) {
-      text += '\n\n⚠️ Warnings:\n' + result.warnings.map(w => `- ${w}`).join('\n');
+      text += '\n\n⚠️ Warnings:\n' + result.warnings.map((w) => `- ${w}`).join('\n');
     }
 
     return {
@@ -170,7 +169,7 @@ export abstract class BaseTool {
     args: Record<string, unknown>,
     name: string,
     type: 'string' | 'number' | 'boolean' | 'object',
-    required = true
+    required = true,
   ): string | null {
     if (required && (args[name] === undefined || args[name] === null)) {
       return `Missing required argument: ${name}`;
@@ -178,7 +177,7 @@ export abstract class BaseTool {
 
     if (args[name] !== undefined && args[name] !== null) {
       const actualType = Array.isArray(args[name]) ? 'array' : typeof args[name];
-      
+
       if (type === 'object' && actualType !== 'object') {
         return `Argument '${name}' must be an object, got ${actualType}`;
       } else if (type !== 'object' && actualType !== type) {
@@ -197,18 +196,18 @@ export abstract class BaseTool {
     name: string,
     required = true,
     minLength = 0,
-    maxLength = Infinity
+    maxLength = Infinity,
   ): string | null {
     const typeError = this.validateArgument(args, name, 'string', required);
     if (typeError) return typeError;
 
     if (args[name] !== undefined && args[name] !== null) {
-      const value = String(args[name]);
-      
+      const value = typeof args[name] === 'string' ? args[name] : JSON.stringify(args[name]);
+
       if (value.length < minLength) {
         return `Argument '${name}' must be at least ${minLength} characters long`;
       }
-      
+
       if (value.length > maxLength) {
         return `Argument '${name}' must be at most ${maxLength} characters long`;
       }

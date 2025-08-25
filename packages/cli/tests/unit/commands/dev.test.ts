@@ -297,7 +297,7 @@ describe('Dev Command', () => {
       changeHandler!('src/test.ts');
 
       // Assert: Should handle file change
-      expect(output.info).toHaveBeenCalledWith('File changed: undefined'); // output.path(path) returns undefined in mock
+      expect(output.info).toHaveBeenCalledWith('File changed: src/test.ts'); // output.path(path) returns the path
       expect(output.debug).toHaveBeenCalledWith('Triggering hot reload...');
       expect(result.success).toBe(true);
     });
@@ -322,7 +322,7 @@ describe('Dev Command', () => {
       addHandler!('src/new-file.ts');
 
       // Assert: Should handle file add
-      expect(output.debug).toHaveBeenCalledWith('File added: undefined'); // output.path(path) returns undefined in mock
+      expect(output.debug).toHaveBeenCalledWith('File added: src/new-file.ts'); // output.path(path) returns the path
       expect(result.success).toBe(true);
     });
 
@@ -346,7 +346,7 @@ describe('Dev Command', () => {
       unlinkHandler!('src/deleted-file.ts');
 
       // Assert: Should handle file remove
-      expect(output.debug).toHaveBeenCalledWith('File removed: undefined'); // output.path(path) returns undefined in mock
+      expect(output.debug).toHaveBeenCalledWith('File removed: src/deleted-file.ts'); // output.path(path) returns the path
       expect(result.success).toBe(true);
     });
 
