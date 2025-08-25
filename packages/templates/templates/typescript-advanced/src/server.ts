@@ -6,6 +6,8 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
+import { registerPrompts } from './prompts/index.js';
+import { progressTracker } from './notifications/progress.js';
 
 /**
  * Create and configure the MCP server
@@ -19,8 +21,13 @@ export async function createServer(): Promise<Server> {
     {
       capabilities: {
         tools: {},
-        resources: {},
-        prompts: {},
+        resources: {
+          subscribe: true,
+          listChanged: true,
+        },
+        prompts: {
+          listChanged: true,
+        },
       },
     },
   );
@@ -30,6 +37,12 @@ export async function createServer(): Promise<Server> {
 
   // Register resources
   await registerResources(server);
+
+  // Register prompts
+  await registerPrompts(server);
+
+  // Initialize progress tracker
+  progressTracker.initialize(server);
 
   // Connect to stdio transport
   const transport = new StdioServerTransport();

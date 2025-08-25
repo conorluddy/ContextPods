@@ -8,6 +8,7 @@ import { logger } from '../utils/logger.js';
 import { fileTools, handleFileToolCall } from './file-tools.js';
 import { dataTools, handleDataToolCall } from './data-tools.js';
 import { utilityTools, handleUtilityToolCall } from './utility-tools.js';
+import { advancedTools, handleAdvancedToolCall } from './advanced-tools.js';
 
 /**
  * Register all tools with the server
@@ -15,8 +16,8 @@ import { utilityTools, handleUtilityToolCall } from './utility-tools.js';
 export async function registerTools(server: Server): Promise<void> {
   logger.info('Registering tools for {{serverName}}...');
 
-  // Combine all tools
-  const allTools = [...fileTools, ...dataTools, ...utilityTools];
+  // Combine all tools including advanced tools with annotations
+  const allTools = [...fileTools, ...dataTools, ...utilityTools, ...advancedTools];
 
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -35,6 +36,9 @@ export async function registerTools(server: Server): Promise<void> {
     if (result) return result;
 
     result = await handleUtilityToolCall(name, args);
+    if (result) return result;
+
+    result = await handleAdvancedToolCall(name, args);
     if (result) return result;
 
     throw new Error(`Unknown tool: ${name}`);

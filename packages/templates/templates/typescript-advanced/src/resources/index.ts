@@ -8,6 +8,7 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '../utils/logger.js';
+import { subscriptionManager, createSubscribableResource } from './subscriptions.js';
 
 /**
  * Available resources
@@ -28,14 +29,39 @@ const resources = [
 ];
 
 /**
+ * Dynamic resources that support subscriptions
+ */
+const subscribableResources = new Map<string, ReturnType<typeof createSubscribableResource>>();
+
+// Create subscribable status resource
+subscribableResources.set(
+  '{{serverName}}://status',
+  createSubscribableResource('{{serverName}}://status', {
+    status: 'running',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  }),
+);
+
+/**
  * Register all resources with the server
  */
 export async function registerResources(server: Server): Promise<void> {
   logger.info('Registering resources for {{serverName}}...');
 
-  // List available resources
+  // Initialize subscription manager
+  subscriptionManager.initialize(server);
+
+  // List available resources with subscription capability
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    return { resources };
+    return {
+      resources: resources.map((resource) => ({
+        ...resource,
+        annotations: {
+          supportsSubscriptions: resource.uri === '{{serverName}}://status',
+        },
+      })),
+    };
   });
 
   // Read resource content
