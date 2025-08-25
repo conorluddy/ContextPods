@@ -31,10 +31,10 @@
   "author": "Conor Luddy",
   "license": "MIT",
   "dependencies": {
-    "zod": "^3.23.0",
-    "@context-pods/templates": "^0.1.8"
+    "zod": "^4.1.1",
+    "@context-pods/templates": "^0.1.10"
   },
   "devDependencies": {
-    "@types/node": "^20.14.0"
+    "@types/node": "^24.3.0"
   }
 }

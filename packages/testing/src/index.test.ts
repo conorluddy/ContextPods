@@ -3,9 +3,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
 import { TestStatus } from './types.js';
-import { ReportGenerator } from './utils/report-generator.js';
 import { MockHelpers } from './utils/mock-helpers.js';
+import { ReportGenerator } from './utils/report-generator.js';
 
 describe('Testing Framework', () => {
   describe('TestStatus enum', () => {

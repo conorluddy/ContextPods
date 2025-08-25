@@ -249,7 +249,7 @@ export class MCPProtocolValidator {
       if (!result.success) {
         return {
           valid: false,
-          errors: result.error.errors.map((e) => e.message),
+          errors: result.error.issues.map((e) => e.message),
         };
       }
 
@@ -286,7 +286,7 @@ export class MCPProtocolValidator {
       description: z.string().optional(),
       inputSchema: z.object({
         type: z.literal('object'),
-        properties: z.record(z.unknown()).optional(),
+        properties: z.record(z.string(), z.unknown()).optional(),
         required: z.array(z.string()).optional(),
         additionalProperties: z.boolean().optional(),
       }),

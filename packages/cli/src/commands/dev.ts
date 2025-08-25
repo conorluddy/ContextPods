@@ -98,7 +98,7 @@ function setupHotReload(context: CommandContext): void {
       output.debug(`File removed: ${output.path(path)}`);
     })
     .on('error', (error) => {
-      output.error('File watcher error', error);
+      output.error('File watcher error', error as Error);
     });
 
   output.success('Hot reload enabled');

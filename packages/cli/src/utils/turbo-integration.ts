@@ -2,8 +2,8 @@
  * TurboRepo integration utilities for Context-Pods CLI
  */
 
-import type { ExecaReturnValue } from 'execa';
 import { execa } from 'execa';
+import type { Result } from 'execa';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { CLIConfig } from '../types/cli-types.js';
@@ -70,7 +70,7 @@ export class TurboIntegration {
       cwd?: string;
       verbose?: boolean;
     } = {},
-  ): Promise<ExecaReturnValue> {
+  ): Promise<Result> {
     const { args = [], filter, cwd = this.workspaceRoot, verbose = false } = options;
 
     const turboArgs = [command, ...args];

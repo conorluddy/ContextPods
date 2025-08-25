@@ -159,7 +159,8 @@ function displayTemplateInfo(template: TemplateSelectionResult): void {
       ([name, config]: [string, TemplateVariable]) => {
         const required = config.required ? '(required)' : '(optional)';
         const defaultValue =
-          config.default !== undefined ? ` [default: ${String(config.default)}]` : '';
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string
+          config.default !== undefined ? ` [default: ${typeof config.default === 'object' ? JSON.stringify(config.default) : String(config.default)}]` : '';
         output.list([
           `${name}: ${config.description || 'No description'} ${required}${defaultValue}`,
         ]);
@@ -351,7 +352,7 @@ async function promptForVariable(config: TemplateVariable): Promise<unknown> {
       }
   }
 
-  const { value } = await inquirer.prompt([prompt]);
+  const { value } = await inquirer.prompt(prompt as any);
   return value;
 }
 

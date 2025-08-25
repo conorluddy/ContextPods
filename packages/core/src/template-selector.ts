@@ -4,11 +4,12 @@
 
 import { promises as fs } from 'fs';
 import { join } from 'path';
+
 import { logger } from './logger.js';
+import { TemplateMetadataSchema } from './schemas.js';
 import { DefaultTemplateEngine } from './template-engine.js';
 import type { TemplateMetadata } from './types.js';
 import { TemplateLanguage } from './types.js';
-import { TemplateMetadataSchema } from './schemas.js';
 
 /**
  * Template selection criteria

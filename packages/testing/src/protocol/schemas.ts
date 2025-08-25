@@ -115,7 +115,7 @@ export const ListToolsResponseSchema = z.object({
         description: z.string().optional(),
         inputSchema: z.object({
           type: z.literal('object'),
-          properties: z.record(z.unknown()).optional(),
+          properties: z.record(z.string(), z.unknown()).optional(),
           required: z.array(z.string()).optional(),
           additionalProperties: z.boolean().optional(),
         }),
@@ -130,7 +130,7 @@ export const CallToolRequestSchema = z.object({
   method: z.literal('tools/call'),
   params: z.object({
     name: z.string(),
-    arguments: z.record(z.unknown()).optional(),
+    arguments: z.record(z.string(), z.unknown()).optional(),
   }),
   id: JsonRpcIdSchema,
 });
@@ -238,7 +238,7 @@ export const GetPromptRequestSchema = z.object({
   method: z.literal('prompts/get'),
   params: z.object({
     name: z.string(),
-    arguments: z.record(z.string()).optional(),
+    arguments: z.record(z.string(), z.string()).optional(),
   }),
   id: JsonRpcIdSchema,
 });

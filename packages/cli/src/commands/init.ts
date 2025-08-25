@@ -155,7 +155,7 @@ async function collectProjectInfo(
     }
   }
 
-  const answers = await inquirer.prompt(questions);
+  const answers = await inquirer.prompt(questions as any);
 
   return {
     name: name || answers.name,
