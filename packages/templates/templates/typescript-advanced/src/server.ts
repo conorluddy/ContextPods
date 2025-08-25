@@ -8,6 +8,9 @@ import { registerTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
 import { registerPrompts } from './prompts/index.js';
 import { progressTracker } from './notifications/progress.js';
+import { registerSampling } from './sampling/index.js';
+import { registerRoots } from './roots/index.js';
+import { registerCompletion } from './completion/index.js';
 
 /**
  * Create and configure the MCP server
@@ -28,6 +31,13 @@ export async function createServer(): Promise<Server> {
         prompts: {
           listChanged: true,
         },
+        sampling: {},
+        roots: {
+          listChanged: true,
+        },
+        completion: {
+          argumentHints: true,
+        },
       },
     },
   );
@@ -40,6 +50,11 @@ export async function createServer(): Promise<Server> {
 
   // Register prompts
   await registerPrompts(server);
+
+  // Register advanced features
+  await registerSampling(server);
+  await registerRoots(server);
+  await registerCompletion(server);
 
   // Initialize progress tracker
   progressTracker.initialize(server);
