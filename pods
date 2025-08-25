@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# Context-Pods CLI Shortcut
+# This script provides a convenient ./pods shortcut to run context-pods commands
+# from the root directory without needing to type the full npx command.
+
+set -e
+
+# Check if we're in the right directory (has package.json with context-pods name)
+if [[ ! -f "package.json" ]]; then
+    echo "❌ Error: package.json not found. Please run this script from the Context-Pods root directory."
+    exit 1
+fi
+
+# Verify this is the Context-Pods project
+if ! grep -q '"name": "context-pods"' package.json 2>/dev/null; then
+    echo "⚠️  Warning: This doesn't appear to be the Context-Pods project directory."
+    echo "   Expected package.json with name 'context-pods'"
+    echo ""
+fi
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Show help if no arguments provided
+if [[ $# -eq 0 ]]; then
+    echo -e "${BLUE}🚀 Context-Pods CLI Shortcut${NC}"
+    echo ""
+    echo "Usage: ./pods <command> [options]"
+    echo ""
+    echo -e "${GREEN}Common Commands:${NC}"
+    echo "  ./pods generate typescript-basic --name my-server"
+    echo "  ./pods wrap ./script.py --name my-wrapper"
+    echo "  ./pods list"
+    echo "  ./pods templates"
+    echo "  ./pods doctor"
+    echo "  ./pods wizard"
+    echo ""
+    echo -e "${YELLOW}Full Help:${NC}"
+    echo "  ./pods --help"
+    echo ""
+    exit 0
+fi
+
+# Check if CLI package is built
+if [[ ! -d "packages/cli/dist" ]]; then
+    echo -e "${YELLOW}⚠️  CLI not built yet. Building...${NC}"
+    npm run build --workspace=@context-pods/cli
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}❌ Failed to build CLI package${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✅ CLI built successfully${NC}"
+    echo ""
+fi
+
+# Run the CLI with all passed arguments
+echo -e "${BLUE}🔧 Running: context-pods $*${NC}"
+echo ""
+
+# Use the local CLI binary directly for better performance
+export NODE_PATH="$PWD/node_modules:$NODE_PATH"
+exec node ./packages/cli/bin/context-pods "$@"
