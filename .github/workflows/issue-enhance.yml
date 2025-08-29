@@ -1,0 +1,308 @@
+name: Interactive Issue Enhancement with Claude
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  # Note: GitHub doesn't have issue_comment_reaction events in Actions
+  # We'll check for reactions in the workflow logic instead
+
+jobs:
+  # Initial enhancement when issue is first created
+  enhance-new-issue:
+    if: |
+      github.event_name == 'issues' &&
+      github.event.action == 'opened' &&
+      github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Enhance New Issue with Claude
+        id: claude-enhance
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            You are enhancing GitHub issue #${{ github.event.issue.number }} with comprehensive specifications.
+
+            Please follow the instructions in .claude/commands/issue-enhance.md to:
+
+            1. Analyze the current issue: "${{ github.event.issue.title }}"
+               Issue description: "${{ github.event.issue.body }}"
+
+            2. Review repository context including recent commits and PRs
+
+            3. Generate comprehensive specifications following the format specified in issue-enhance.md
+
+            4. Append the enhanced specifications to the issue using: `gh issue edit ${{ github.event.issue.number }} --body-file -` 
+               (Read the current issue body first, then append your enhancement with a --- separator)
+
+            Important: 
+            - Only append to the existing issue description, don't replace it
+            - Use the exact format specified in the issue-enhance.md command
+            - Focus on actionable, implementable specifications
+            - Consider the repository's development standards from CLAUDE.md
+            - Add a note that users can react with 🔄 (refine) or 🦖 (evolve) to iterate
+
+          claude_args: '--allowed-tools "Bash(gh issue:*),Bash(gh pr:*),Bash(gh search:*),Bash(git log:*),Bash(git diff:*),Bash(find:*),Bash(grep:*),Read,Glob,Grep,LS"'
+
+  # Handle iteration requests via reactions
+  iterate-issue:
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.action == 'created' &&
+      github.event.comment.user.login == github.repository_owner &&
+      (contains(github.event.comment.body, '🔄') || contains(github.event.comment.body, '🦖') || contains(github.event.comment.body, 'iterate') || contains(github.event.comment.body, 'refine') || contains(github.event.comment.body, 'evolve'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Detect Iteration Type
+        id: detect-type
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          if [[ "$COMMENT_BODY" == *"🔄"* ]] || [[ "$COMMENT_BODY" == *"refine"* ]]; then
+            echo "mode=refine" >> $GITHUB_OUTPUT
+            echo "emoji=🔄" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT_BODY" == *"🦖"* ]] || [[ "$COMMENT_BODY" == *"evolve"* ]]; then
+            echo "mode=evolve" >> $GITHUB_OUTPUT
+            echo "emoji=🦖" >> $GITHUB_OUTPUT
+          else
+            echo "mode=general" >> $GITHUB_OUTPUT
+            echo "emoji=💬" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Iterate Issue with Claude
+        id: claude-iterate
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            You are iterating on GitHub issue #${{ github.event.issue.number }} based on a user request.
+
+            **Iteration Mode**: ${{ steps.detect-type.outputs.mode }}
+            **Trigger Comment**: "${{ github.event.comment.body }}"
+            **Comment Author**: ${{ github.event.comment.user.login }}
+
+            Please follow the instructions in .claude/commands/issue-iterate.md to:
+
+            1. Analyze the complete issue context:
+               - Original issue: "${{ github.event.issue.title }}"
+               - Current description: "${{ github.event.issue.body }}"
+               - All comments and iteration history
+
+            2. Generate an appropriate iteration based on the mode:
+               - 🔄 refine: Polish and clarify existing specifications
+               - 🦖 evolve: Creatively expand and enhance the idea  
+               - 💬 general: Respond to specific questions or comments
+
+            3. Post your iteration as a comment using: `gh issue comment ${{ github.event.issue.number }} --body-file -`
+
+            Important:
+            - Follow the exact format specified in issue-iterate.md
+            - Build on previous iterations and context
+            - Include the note about ⭐️ reactions for finalizing iterations
+            - Make each iteration add meaningful value
+
+          claude_args: '--allowed-tools "Bash(gh issue:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*),Bash(git log:*),Bash(git diff:*),Bash(find:*),Bash(grep:*),Read,Glob,Grep,LS"'
+
+  # Handle chat/discussion via @claude mentions
+  chat-issue:
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.action == 'created' &&
+      github.event.comment.user.login == github.repository_owner &&
+      contains(github.event.comment.body, '@claude') &&
+      !contains(github.event.comment.body, '🔄') &&
+      !contains(github.event.comment.body, '🦖') &&
+      !contains(github.event.comment.body, 'iterate') &&
+      !contains(github.event.comment.body, 'refine') &&
+      !contains(github.event.comment.body, 'evolve')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Chat About Issue with Claude
+        id: claude-chat
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            You are discussing GitHub issue #${{ github.event.issue.number }} with the repository owner.
+
+            **User Comment**: "${{ github.event.comment.body }}"
+            **Issue Title**: "${{ github.event.issue.title }}"
+            **Issue Context**: "${{ github.event.issue.body }}"
+
+            Please:
+            1. Read the complete issue thread for context
+            2. Respond helpfully to the user's comment/question
+            3. Use issue-iterate.md guidance for chat mode (💬)
+            4. Post your response as a comment
+
+            Remember to:
+            - Be conversational and helpful
+            - Reference repository context and standards when relevant
+            - Suggest iteration opportunities if appropriate (🔄 or 🦖)
+            - Keep responses focused on the issue at hand
+
+          claude_args: '--allowed-tools "Bash(gh issue:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*),Bash(git log:*),Bash(git diff:*),Bash(find:*),Bash(grep:*),Read,Glob,Grep,LS"'
+
+  # Handle finalization via star reactions (checking manually)
+  finalize-iteration:
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.action == 'created' &&
+      github.event.comment.user.login == github.repository_owner &&
+      (contains(github.event.comment.body, '⭐') || contains(github.event.comment.body, 'finalize') || contains(github.event.comment.body, 'replace'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Finalize Issue Description with Claude
+        id: claude-finalize
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            You are finalizing GitHub issue #${{ github.event.issue.number }} based on a user request to promote an iteration to the main description.
+
+            **Finalization Request**: "${{ github.event.comment.body }}"
+            **Current Issue Title**: "${{ github.event.issue.title }}"
+
+            Please:
+            1. Read the complete issue thread and identify the best/latest iteration to promote
+            2. If the user referenced a specific comment or iteration, use that one
+            3. Replace the main issue description with the selected iteration
+            4. Preserve the original content in a collapsed <details> section
+            5. Add metadata about the iteration history
+
+            Use: `gh issue edit ${{ github.event.issue.number }} --body-file -`
+
+            Important:
+            - Create a comprehensive, finalized issue description
+            - Maintain all the enhanced specifications and details
+            - Add a note about the iteration history
+            - Ensure the result is ready for implementation
+
+          claude_args: '--allowed-tools "Bash(gh issue:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*),Bash(git log:*),Bash(git diff:*),Bash(find:*),Bash(grep:*),Read,Glob,Grep,LS"'
+
+  # Handle automatic implementation requests
+  implement-issue:
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.action == 'created' &&
+      github.event.comment.user.login == github.repository_owner &&
+      (contains(github.event.comment.body, '🚀') || contains(github.event.comment.body, 'implement') || contains(github.event.comment.body, 'start work'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Setup Git Configuration
+        run: |
+          git config --global user.name "claude-code[bot]"
+          git config --global user.email "claude-code[bot]@users.noreply.github.com"
+
+      - name: Implement Issue with Claude
+        id: claude-implement
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            You are implementing GitHub issue #${{ github.event.issue.number }} by creating a branch, writing code, and opening a pull request.
+
+            **Implementation Request**: "${{ github.event.comment.body }}"
+            **Issue Title**: "${{ github.event.issue.title }}"
+            **Issue Specifications**: "${{ github.event.issue.body }}"
+            **Comment Author**: ${{ github.event.comment.user.login }}
+
+            Please follow the instructions in .claude/commands/issue-implement.md to:
+
+            ## Phase 1: Analysis & Planning
+            1. Analyze the complete issue context and requirements
+            2. Review repository architecture, patterns, and conventions  
+            3. Create detailed implementation plan with atomic tasks
+            4. Identify all files that need to be created or modified
+
+            ## Phase 2: Branch & PR Setup
+            1. Create feature branch: `git checkout -b issue-${{ github.event.issue.number }}-{descriptive-slug}`
+            2. Create draft PR with implementation plan using: `gh pr create --draft`
+            3. Link PR to issue with "Closes #${{ github.event.issue.number }}" in description
+
+            ## Phase 3: Implementation
+            1. Implement solution incrementally with atomic commits
+            2. Write comprehensive tests achieving >90% coverage
+            3. Update documentation and add code comments
+            4. Validate all quality gates (tests, lint, build, type-check)
+            5. Update PR with progress after each major milestone
+
+            ## Phase 4: Completion
+            1. Mark PR as ready for review (remove draft status)
+            2. Post completion comment on original issue
+            3. Ensure all acceptance criteria are met
+
+            **Critical Requirements:**
+            - Follow repository patterns and conventions from CLAUDE.md
+            - Achieve >90% test coverage for new code
+            - Make atomic commits with conventional commit messages
+            - Provide detailed progress updates on both issue and PR
+            - Ensure all quality gates pass before marking ready for review
+
+          claude_args: '--allowed-tools "Bash(git:*),Bash(gh issue:*),Bash(gh pr:*),Bash(gh api:*),Bash(npm:*),Bash(npx:*),Read,Write,Edit,MultiEdit,Glob,Grep,LS,Bash(find:*),Bash(mkdir:*),Bash(touch:*),Bash(cp:*),Bash(mv:*)"'
