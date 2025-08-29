@@ -75,3 +75,5 @@ Before committing or pushing any changes, ALL of the following quality gates mus
 - **File Extensions** - Always include .js extensions in TypeScript imports
 
 - The Schema SSOT for MCP is here: https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema
+
+- Claude is integrated into the Github environment via Actions.
