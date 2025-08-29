@@ -1,0 +1,54 @@
+name: Enhance Issues with Claude
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  enhance-issue:
+    # Only run for issues opened by the repository owner
+    if: github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100 # Get more history for better context analysis
+
+      - name: Enhance Issue with Claude
+        id: claude-enhance
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Read the enhancement prompt from the commands directory
+          prompt: |
+            You are enhancing GitHub issue #${{ github.event.issue.number }} with comprehensive specifications.
+
+            Please follow the instructions in .claude/commands/issue-enhance.md to:
+
+            1. Analyze the current issue: "${{ github.event.issue.title }}"
+               Issue description: "${{ github.event.issue.body }}"
+
+            2. Review repository context including recent commits and PRs
+
+            3. Generate comprehensive specifications following the format specified in issue-enhance.md
+
+            4. Append the enhanced specifications to the issue using: `gh issue edit ${{ github.event.issue.number }} --body-file -` 
+               (Read the current issue body first, then append your enhancement with a --- separator)
+
+            Important: 
+            - Only append to the existing issue description, don't replace it
+            - Use the exact format specified in the issue-enhance.md command
+            - Focus on actionable, implementable specifications
+            - Consider the repository's development standards from CLAUDE.md
+
+          # Enable GitHub CLI and repository analysis tools
+          claude_args: '--allowed-tools "Bash(gh issue:*),Bash(gh pr:*),Bash(gh search:*),Bash(git log:*),Bash(git diff:*),Bash(find:*),Bash(grep:*),Read,Glob,Grep,LS"'
