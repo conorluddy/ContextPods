@@ -120,6 +120,19 @@ Append the enhanced specifications to the issue description with the following f
 
 ### Related Work
 [Links to related issues, PRs, recent commits]
+
+---
+
+## 🔄 Interactive Iteration
+
+This issue supports interactive refinement with Claude:
+
+- **💬 Chat**: Comment with `@claude` to discuss implementation details
+- **🔄 Refine**: Comment with `🔄 refine` to polish and clarify specifications
+- **🦖 Evolve**: Comment with `🦖 evolve` to creatively expand the idea
+- **⭐ Finalize**: Comment with `⭐ finalize` to replace this description with your preferred iteration
+
+All iterations will appear as comments and can be promoted to the main description when ready.
 ```
 
 ## Command Execution
