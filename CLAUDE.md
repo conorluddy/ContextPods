@@ -75,3 +75,43 @@ Before committing or pushing any changes, ALL of the following quality gates mus
 - **File Extensions** - Always include .js extensions in TypeScript imports
 
 - The Schema SSOT for MCP is here: https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema
+
+## GitHub Actions Integration
+
+Claude is integrated into the GitHub environment via Actions workflows that provide automated code assistance and review capabilities:
+
+### Claude Assistant Workflow (`claude.yml`)
+
+The primary Claude assistant workflow triggers on:
+- **Issue Comments**: When `@claude` is mentioned in issue comments
+- **PR Review Comments**: When `@claude` is mentioned in pull request review comments  
+- **PR Reviews**: When `@claude` is mentioned in submitted reviews
+- **Issues**: When `@claude` is mentioned in issue titles or descriptions
+
+**Key Features:**
+- Automated response to Claude mentions across GitHub events
+- Full repository access for code analysis and modifications
+- CI result integration for comprehensive development assistance
+- Configurable prompts and model selection via workflow parameters
+
+### Automated Code Review Workflow (`claude-code-review.yml`)
+
+The automated code review workflow provides:
+- **Automatic PR Reviews**: Triggers on pull request creation and updates
+- **Comprehensive Analysis**: Reviews code quality, best practices, security, and test coverage
+- **Repository Convention Awareness**: Uses CLAUDE.md guidelines for consistent feedback
+- **Selective Triggering**: Can be configured for specific authors or file paths
+
+**Review Areas:**
+- Code quality and best practices adherence
+- Potential bugs and security vulnerabilities  
+- Performance considerations and optimizations
+- Test coverage and completeness
+- Alignment with repository standards (following CLAUDE.md guidelines)
+
+### Integration Benefits
+
+- **Development Workflow Enhancement**: Seamless integration with GitHub's native PR and issue workflows
+- **Consistent Code Quality**: Automated enforcement of project standards and best practices
+- **Knowledge Retention**: Claude maintains context about repository conventions and development patterns
+- **CI/CD Integration**: Access to workflow results and build status for informed assistance
