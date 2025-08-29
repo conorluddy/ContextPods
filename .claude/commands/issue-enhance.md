@@ -133,6 +133,25 @@ This issue supports interactive refinement with Claude:
 - **⭐ Finalize**: Comment with `⭐ finalize` to replace this description with your preferred iteration
 
 All iterations will appear as comments and can be promoted to the main description when ready.
+
+---
+
+## 🚀 Auto-Implementation
+
+Once this issue is fully specified and ready for development:
+
+- **🚀 Implement**: Comment with `🚀 implement` to automatically create a branch, implement the solution, and open a pull request
+- **Alternative triggers**: `implement` or `start work` also trigger auto-implementation
+
+**What happens during auto-implementation:**
+1. **Analysis**: Claude analyzes the issue specifications and repository context
+2. **Planning**: Creates detailed implementation plan with atomic tasks
+3. **Branch & PR**: Creates feature branch and draft pull request with progress tracking
+4. **Development**: Implements solution incrementally with tests and documentation
+5. **Quality**: Validates all quality gates (tests, lint, build, type-check)
+6. **Review**: Marks PR ready for review with comprehensive testing instructions
+
+The entire implementation follows repository standards and maintains >90% test coverage.
 ```
 
 ## Command Execution

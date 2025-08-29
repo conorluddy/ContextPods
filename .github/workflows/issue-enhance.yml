@@ -232,3 +232,77 @@ jobs:
             - Ensure the result is ready for implementation
 
           claude_args: '--allowed-tools "Bash(gh issue:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*),Bash(git log:*),Bash(git diff:*),Bash(find:*),Bash(grep:*),Read,Glob,Grep,LS"'
+
+  # Handle automatic implementation requests
+  implement-issue:
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.action == 'created' &&
+      github.event.comment.user.login == github.repository_owner &&
+      (contains(github.event.comment.body, '🚀') || contains(github.event.comment.body, 'implement') || contains(github.event.comment.body, 'start work'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Setup Git Configuration
+        run: |
+          git config --global user.name "claude-code[bot]"
+          git config --global user.email "claude-code[bot]@users.noreply.github.com"
+
+      - name: Implement Issue with Claude
+        id: claude-implement
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            You are implementing GitHub issue #${{ github.event.issue.number }} by creating a branch, writing code, and opening a pull request.
+
+            **Implementation Request**: "${{ github.event.comment.body }}"
+            **Issue Title**: "${{ github.event.issue.title }}"
+            **Issue Specifications**: "${{ github.event.issue.body }}"
+            **Comment Author**: ${{ github.event.comment.user.login }}
+
+            Please follow the instructions in .claude/commands/issue-implement.md to:
+
+            ## Phase 1: Analysis & Planning
+            1. Analyze the complete issue context and requirements
+            2. Review repository architecture, patterns, and conventions  
+            3. Create detailed implementation plan with atomic tasks
+            4. Identify all files that need to be created or modified
+
+            ## Phase 2: Branch & PR Setup
+            1. Create feature branch: `git checkout -b issue-${{ github.event.issue.number }}-{descriptive-slug}`
+            2. Create draft PR with implementation plan using: `gh pr create --draft`
+            3. Link PR to issue with "Closes #${{ github.event.issue.number }}" in description
+
+            ## Phase 3: Implementation
+            1. Implement solution incrementally with atomic commits
+            2. Write comprehensive tests achieving >90% coverage
+            3. Update documentation and add code comments
+            4. Validate all quality gates (tests, lint, build, type-check)
+            5. Update PR with progress after each major milestone
+
+            ## Phase 4: Completion
+            1. Mark PR as ready for review (remove draft status)
+            2. Post completion comment on original issue
+            3. Ensure all acceptance criteria are met
+
+            **Critical Requirements:**
+            - Follow repository patterns and conventions from CLAUDE.md
+            - Achieve >90% test coverage for new code
+            - Make atomic commits with conventional commit messages
+            - Provide detailed progress updates on both issue and PR
+            - Ensure all quality gates pass before marking ready for review
+
+          claude_args: '--allowed-tools "Bash(git:*),Bash(gh issue:*),Bash(gh pr:*),Bash(gh api:*),Bash(npm:*),Bash(npx:*),Read,Write,Edit,MultiEdit,Glob,Grep,LS,Bash(find:*),Bash(mkdir:*),Bash(touch:*),Bash(cp:*),Bash(mv:*)"'
